@@ -1,0 +1,46 @@
+#New Reference
+n_posit : 1000
+n_thermo : 1000
+n_graph : 1000
+n_spindle : 10000
+graph_flag : 1
+grab_flag : 0
+grab_file : data/frames/frame
+color_file : color.def
+seed : XiSeed(bounds=[0,16])
+n_steps : 160000000
+config_file : spb_dynamics.yaml
+color_switch : 1
+sphere_draw_flag : 1
+dynamic_instability_flag : 1
+f_grow_to_pause: 0.0
+f_grow_to_shrink: XiParam(format_str="fc{0:4f}", exec_str="LinearSlice(bounds=[.0001,.001], n_vars=6)")
+f_shrink_to_pause: 0.0
+f_shrink_to_grow: 0.00042
+f_pause_to_grow: 0.02
+f_pause_to_shrink: 0.0
+v_poly: 0.094933333
+v_depoly: 0.159
+neighb_switch : 1
+min_length : 2.0
+max_length : 400.0
+crosslink_file : crosslink_params.yaml
+skin : 10.0
+n_overlaps : 2
+omp_num_threads : 2
+kmp_blocktime : 1000
+omp_schedule : guided
+gomp_spincount : 1000000
+omp_chunksize : 2
+mt_diffusion_flag : 1
+force_induced_catastrophe_flag : 1
+delta : 0.00025
+wall_potential_flag : 5 
+wall_force_factor : XiParam(format_str="wf{0:4f}", exec_str="LinearSlice(bounds=[0,90])") 
+force_poly_flag : 1
+data_analysis_file : data_analysis.yaml
+f_mt_stall: 90.0
+xlink_stage1_stabilization_flag : 0
+spb_diffusion : .0256
+ne_ratio : 24.61538
+graph_boundary_flag : 1
