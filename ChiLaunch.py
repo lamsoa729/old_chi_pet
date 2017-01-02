@@ -98,7 +98,7 @@ cd $SLURM_SUBMIT_DIR
 """.format(job_name, walltime, nnodes, log, errlog, allocation, queue)
         for i, sd_path in enumerate(seedpaths):
             sd_path = os.path.abspath(sd_path)
-            command = "{0} {1} {2}".format(seedlaunchpath, sd_path, " ".join(statelist[i]))
+            command = "{0} {1} {2} {3} {4}".format(seedlaunchpath, sd_path, program, prefix, " ".join(statelist[i]))
             log = os.path.join(sd_path, 'sim.log')
             errlog = os.path.join(sd_path, 'sim.err')
             
@@ -126,7 +126,7 @@ cd $PBS_O_WORKDIR
 """.format(job_name, walltime, processors, log, errlog, queue)
         for i, sd_path in enumerate(seedpaths):
             sd_path = os.path.abspath(sd_path)
-            command = "{0} {1} {2}".format(seedlaunchpath, sd_path, " ".join(statelist[i]))
+            command = "{0} {1} {2} {3} {4}".format(seedlaunchpath, sd_path, program, prefix, " ".join(statelist[i]))
             log = os.path.join(sd_path, 'sim.log')
             errlog = os.path.join(sd_path, 'sim.err')
 
@@ -147,7 +147,10 @@ cd $PBS_O_WORKDIR
     print output.read()
 
 # Create parallel job submissions to be run on the same node
-def create_parallel_job(seedpaths, statelist, job_name="ChiRun", walltime="1:00", processors = "nodes=1:ppn=1", queue="janus-long", allocation="UCB00000513", qmgr='slurm', program="spb_dynamics"):
+def create_parallel_job(seedpaths, statelist, job_name="ChiRun", walltime="1:00", 
+        processors = "nodes=1:ppn=1", queue="janus-long", 
+        allocation="UCB00000513", qmgr='slurm', 
+        program="spb_dynamics", prefix="spindle_bd_mp"):
     print "creating jobs for:"
     for i, sd_path in enumerate(seedpaths):
         print "sim: {0} with states: {1}".format(sd_path, ", ".join(statelist[i]))
@@ -184,7 +187,7 @@ cd $SLURM_SUBMIT_DIR
 """.format(job_name, walltime, nnodes, log, errlog, allocation, queue)
         for i, sd_path in enumerate(seedpaths):
             sd_path = os.path.abspath(sd_path)
-            command = "{0} {1} {2} {3}".format(seedlaunchpath, sd_path, program, " ".join(statelist[i]))
+            command = "{0} {1} {2} {3} {4}".format(seedlaunchpath, sd_path, program, prefix, " ".join(statelist[i]))
             log = os.path.join(sd_path, 'sim.log')
             errlog = os.path.join(sd_path, 'sim.err')
             job_string = job_string + "srun -n1 --exclusive {0} 1> {1} 2> {2} &\n".format(command, log, errlog)
@@ -207,7 +210,7 @@ cd $PBS_O_WORKDIR
 """.format(job_name, walltime, "nodes={0}:ppn={1}".format(nnodes, int(nprocs)), log, errlog, queue)
         for i, sd_path in enumerate(seedpaths):
             sd_path = os.path.abspath(sd_path)
-            command = "{0} {1} {2} {3}".format(seedlaunchpath, sd_path, program, " ".join(statelist[i]))
+            command = "{0} {1} {2} {3} {4}".format(seedlaunchpath, sd_path, program, prefix, " ".join(statelist[i]))
             log = os.path.join(sd_path, 'sim.log')
             errlog = os.path.join(sd_path, 'sim.err')
 
@@ -283,7 +286,7 @@ def ChiLaunch(simdirs):
     for simd in simdirs:
         print "Searching for path {0}".format(simd)
 
-        if os.path.exists(sim):
+        if os.path.exists(simd):
             print "path exists, checking for seeds..."
             seeddirs = seeddirs + [os.path.join(simd, f) for f in os.listdir(simd)
                                 if os.path.isdir(os.path.join(simd, f)) 
@@ -343,8 +346,11 @@ def ChiLaunch(simdirs):
         queue = raw_input('Input job queue (default janus): ').strip()
         if queue == '': queue = "janus"
 
-    program = raw_input('Input program you would like to run (default spb_dynamics): ').strip()
-    if program == '': program = "spb_dynamics"
+    program = raw_input('Input program you would like to run (default spindle_bd_mp): ').strip()
+    if program == '': program = "spindle_bd_mp"
+
+    prefix = raw_input('Input prefix to analysis files (default spindle_bd_mp): ').strip()
+    if prefix == '': prefix = "spindle_bd_mp"
 
     if not query_yes_no("Generating job ({0}) for states ({1}) with walltime ({2}) on queue ({3}) and allocation ({4}) with scheduler({5}).".format(program, ", ".join(runstates), walltime, queue, allocation, scheduler)):
         return 1
@@ -360,7 +366,7 @@ def ChiLaunch(simdirs):
             if endi > len(seeds):
                 endi = len(seeds)
             if endi > starti:
-                create_parallel_job(seeds[starti:endi], states[starti:endi], walltime=walltime, allocation=allocation, queue=queue, qmgr=scheduler, processors=processors, program=program)
+                create_parallel_job(seeds[starti:endi], states[starti:endi], walltime=walltime, allocation=allocation, queue=queue, qmgr=scheduler, processors=processors, program=program, prefix=prefix)
             # Torque scheduler has a 10 second update time 
             # make sure you wait before adding another
             import time

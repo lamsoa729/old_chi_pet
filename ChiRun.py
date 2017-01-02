@@ -4,26 +4,26 @@ import os
 from subprocess import call
 import shutil
 
-def run_start(workdir, program="spb_dynamics"):
+def run_start(workdir, program="spindle_bd_mp", prefix="spindle_bd_mp"):
     print "starting sim in {0}".format(workdir)
     sys.stdout.flush()
     if os.path.exists(workdir):
         os.chdir(workdir)
         open('.running', 'a').close()
-        args = [program, "spb_dynamics.default", "spb_dynamics.equil"]
+        args = [program, prefix+".default", prefix+".equil"]
         status = call(args)
         os.remove('.running')
         return status
     else:
         return 1
 
-def run_analyze(workdir):
+def run_analyze(workdir, prefix="spindle_bd_mp"):
     print "starting sim in {0}".format(workdir)
     sys.stdout.flush()
     if os.path.exists(workdir):
         os.chdir(workdir)
         open('.running', 'a').close()
-        args = ["spindle_analysis", "spb_dynamics.default", "spb_dynamics.equil", "spb_dynamics.initial_config", "spb_dynamics.posit"]
+        args = ["spindle_analysis", prefix+".default", prefix+".equil", prefix+".initial_config", prefix+".posit"]
         status = call(args)
         os.remove('.running')
         return status

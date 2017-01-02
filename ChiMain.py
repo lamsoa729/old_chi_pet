@@ -23,8 +23,6 @@ Input: To view type ChiMain.py -h
 Output:
 '''
 
-
-
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('-n', type=int, default=10,
@@ -73,13 +71,14 @@ class ChiMain(object):
         # Make container directory
         if self.opts.replace and os.path.exists(sim_dir_name):
             shutil.rmtree(sim_dir)
-
         os.mkdir(sim_dir)
+
         # Get number of variations in each parameter set
         lst = [ x.GetNValues() for x in self.ChiParams ] 
 
         # Make a list of all the combinations of parameter indices
         l = ind_recurse(lst)
+
         # Loop through indices and make the new sim directories and place seeds in them
         for il in l:
             self.Sim.MakeSimDirectory(sim_dir_name, il)
@@ -87,8 +86,13 @@ class ChiMain(object):
 
 ##########################################
 if __name__ == "__main__":
+    # Get command line options using argsparse library
     opts = parse_args()
+
+    # Initialize ChiMain
     x = ChiMain(opts)
+
+    # Create directory structure for run specified in arguments
     x.MakeDirectoryStruct()
 
 
