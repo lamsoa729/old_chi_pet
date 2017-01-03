@@ -5,6 +5,7 @@ import os
 import pdb
 import re
 import numpy as np 
+from shutil import copy
 from math import *
 import yaml
 from ChiLib import *
@@ -80,9 +81,10 @@ class ChiParam(object):
         return self.format_str
 
 class ChiSim(object):
-    def __init__(self, xiparams, yml_file_dict):
+    def __init__(self, xiparams, yml_file_dict, opts):
         self.xiparams = xiparams
         self.yml_file_dict = yml_file_dict
+        self.opts = opts
 
     def MakeSeeds(self):
         sd_obj = find_str_values(self.yml_file_dict, 
@@ -100,7 +102,8 @@ class ChiSim(object):
 
         sim_dir = os.path.join(run_dir, sim_name[:-1])
         os.mkdir(sim_dir)
-        self.seeds.MakeSeedDirectories(sim_dir, self.yml_file_dict)
+        print "   {}".format(sim_dir)
+        self.seeds.MakeSeedDirectories(sim_dir, self.yml_file_dict, self.opts)
 
 # Class to fill Sim directories with seed directories
 class ChiSeed(ChiParam):
@@ -110,12 +113,15 @@ class ChiSeed(ChiParam):
     def CreateSeedList(self): 
         self.sd_names = ['s{}'.format(i) for i in self.values]
 
-    def MakeSeedDirectories(self, sim_dir, yml_file_dict):
+    def MakeSeedDirectories(self, sim_dir, yml_file_dict, opts):
         for sn, s in zip(self.sd_names, self.values):
             sd_dir = os.path.join(sim_dir, sn)
             os.mkdir(sd_dir)
             self.obj_r.Set(s)
             CreateYamlFilesFromDict(sd_dir, yml_file_dict)
+            if opts.fluid_config:
+                copy(opts.fluid_config, sd_dir)
+                
 
 ##########################################
 if __name__ == "__main__":
