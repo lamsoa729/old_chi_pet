@@ -41,7 +41,6 @@ def run_parse_args():
     opts = parser.parse_args()
     return opts
 
-
 def run_start(workdir, args): #, prefix="spindle_bd_mp"):
     print "starting sim in {0}".format(workdir)
     sys.stdout.flush()
@@ -68,34 +67,42 @@ def run_analyze(workdir, args):
         return status
     else:
         return 1
-    
+
+
+class ChiRun(object):
+    def __init__(self,opts):
+        self.opts = opts
+
+    def Run(self, opts):
+        args_dict = {}
+        if not os.path.exists(opts.workdir):
+            print "Run failed. Directory {} does not exists".format(opts.workdir)
+
+        else:
+            if (opts.args_file and 
+                    os.path.exists(os.path.join(opts.workdir, opts.args_file))):
+                with open(os.path.join(opts.workdir, opts.args_file), 'r') as f:
+                    af = yaml.load(f)
+            else:
+                af = default_args
+
+        if 'start' in opts.states:
+            if run_start(opts.workdir, af['start']):
+                print "run failed"
+                open('.error', 'a').close()
+            else:
+                os.remove('sim.start')
+        if 'analyze' in opts.states:
+            if run_analyze(opts.workdir, af['analyze']):
+                print "run failed"
+                open('.error', 'a').close()
+            else:
+                os.remove('sim.analyze')
 
 if __name__ == '__main__':
 
     opts = run_parse_args()
 
-    #Check to see if seed directory exists
-    args_dict = {}
-    if not os.path.exists(opts.workdir):
-        print "Run failed. Directory {} does not exists".format(opts.workdir)
+    c = ChiRun(opts)
+    c.Run(opts)
 
-    else:
-        if (opts.args_file and 
-                os.path.exists(os.path.join(opts.workdir, opts.args_file))):
-            with open(os.path.join(opts.workdir, opts.args_file), 'r') as f:
-                af = yaml.load(f)
-        else:
-            af = default_args
-
-    if 'start' in opts.states:
-        if run_start(opts.workdir, af['start']):
-            print "run failed"
-            open('.error', 'a').close()
-        else:
-            os.remove('sim.start')
-    if 'analyze' in opts.states:
-        if run_analyze(opts.workdir, af['analyze']):
-            print "run failed"
-            open('.error', 'a').close()
-        else:
-            os.remove('sim.analyze')
