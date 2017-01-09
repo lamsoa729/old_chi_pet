@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 import sys
 import os
+import yaml
+import argparse
 
 from popen2 import popen2
 
@@ -65,7 +67,8 @@ from popen2 import popen2
 # Creates multithreaded processor jobs. 
 def create_multiprocessor_job(seedpaths, statelist, 
         job_name="ChiRun", walltime="1:00", program="crosslink_sphero_bd_mp", 
-        prefix="crosslink_sphero_bd_mp", processors = "nodes=1:ppn=12", queue="janus", 
+        prefix="crosslink_sphero_bd_mp", arg_file = "args.yaml",
+        processors = "nodes=1:ppn=12", queue="janus", 
         allocation="UCB00000513", qmgr='slurm'):
 
     print "creating jobs for:"
@@ -280,9 +283,13 @@ def query_yes_no(question, default="yes"):
             sys.stdout.write("Please respond with 'yes' or 'no' "\
                              "(or 'y' or 'n').\n")
 
-def ChiLaunch(simdirs):
+def ChiLaunch(simdirs, opts=''):
     # List of all the seeds that will be run
     seeddirs = []
+
+    if opts.prog_options:
+        # Do yaml things
+        print "prog_options not implemented yet."
     
     for simd in simdirs:
         print "Searching for path {0}".format(simd)
@@ -394,6 +401,6 @@ def ChiLaunch(simdirs):
 if __name__ == '__main__':
     if len(sys.argv) > 1:
         # Arguments are the simulation directories to be run
-        ChiLaunch(simdirs=sys.argv[1:])
+        ChiLaunch(simdirs=sys.argv[1:], opts='')
     else:
         print "must supply directory argument"
