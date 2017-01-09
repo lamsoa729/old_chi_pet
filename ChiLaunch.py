@@ -66,8 +66,7 @@ from popen2 import popen2
 
 # Creates multithreaded processor jobs. 
 def create_multiprocessor_job(seedpaths, statelist, 
-        job_name="ChiRun", walltime="1:00", program="crosslink_sphero_bd_mp", 
-        prefix="crosslink_sphero_bd_mp", arg_file = "args.yaml",
+        job_name="ChiRun", walltime="1:00", arg_file = "args.yaml",
         processors = "nodes=1:ppn=12", queue="janus", 
         allocation="UCB00000513", qmgr='slurm'):
 
@@ -102,7 +101,7 @@ cd $SLURM_SUBMIT_DIR
 """.format(job_name, walltime, nnodes, log, errlog, allocation, queue)
         for i, sd_path in enumerate(seedpaths):
             sd_path = os.path.abspath(sd_path)
-            command = "{0} {1} {2} {3} {4}".format(seedlaunchpath, sd_path, program, prefix, " ".join(statelist[i]))
+            command = "{0} -d {1} -a {2} -s {3}".format(seedlaunchpath, sd_path, args_file, " ".join(statelist[i]))
             log = os.path.join(sd_path, 'sim.log')
             errlog = os.path.join(sd_path, 'sim.err')
             
@@ -130,7 +129,8 @@ cd $PBS_O_WORKDIR
 """.format(job_name, walltime, processors, log, errlog, queue)
         for i, sd_path in enumerate(seedpaths):
             sd_path = os.path.abspath(sd_path)
-            command = "{0} {1} {2} {3} {4}".format(seedlaunchpath, sd_path, program, prefix, " ".join(statelist[i]))
+            command = "{0} -d {1} -a {2} -s {3}".format(seedlaunchpath, sd_path, args_file, " ".join(statelist[i]))
+            # command = "{0} {1} {2} {3} {4}".format(seedlaunchpath, sd_path, program, prefix, " ".join(statelist[i]))
             log = os.path.join(sd_path, 'sim.log')
             errlog = os.path.join(sd_path, 'sim.err')
 
@@ -154,7 +154,7 @@ cd $PBS_O_WORKDIR
 def create_parallel_job(seedpaths, statelist, job_name="ChiRun", walltime="1:00", 
         processors = "nodes=1:ppn=1", queue="janus-long", 
         allocation="UCB00000513", qmgr='slurm', 
-        program="spb_dynamics", prefix="spindle_bd_mp"):
+        # program="spb_dynamics", prefix="spindle_bd_mp"):
     print "creating jobs for:"
     for i, sd_path in enumerate(seedpaths):
         print "sim: {0} with states: {1}".format(sd_path, ", ".join(statelist[i]))
@@ -191,7 +191,8 @@ cd $SLURM_SUBMIT_DIR
 """.format(job_name, walltime, nnodes, log, errlog, allocation, queue)
         for i, sd_path in enumerate(seedpaths):
             sd_path = os.path.abspath(sd_path)
-            command = "{0} {1} {2} {3} {4}".format(seedlaunchpath, sd_path, program, prefix, " ".join(statelist[i]))
+            # command = "{0} {1} {2} {3} {4}".format(seedlaunchpath, sd_path, program, prefix, " ".join(statelist[i]))
+            command = "{0} -d {1} -a {2} -s {3}".format(seedlaunchpath, sd_path, args_file, " ".join(statelist[i]))
             log = os.path.join(sd_path, 'sim.log')
             errlog = os.path.join(sd_path, 'sim.err')
             job_string = job_string + "srun -n1 --exclusive {0} 1> {1} 2> {2} &\n".format(command, log, errlog)
@@ -214,7 +215,8 @@ cd $PBS_O_WORKDIR
 """.format(job_name, walltime, "nodes={0}:ppn={1}".format(nnodes, int(nprocs)), log, errlog, queue)
         for i, sd_path in enumerate(seedpaths):
             sd_path = os.path.abspath(sd_path)
-            command = "{0} {1} {2} {3} {4}".format(seedlaunchpath, sd_path, program, prefix, " ".join(statelist[i]))
+            # command = "{0} {1} {2} {3} {4}".format(seedlaunchpath, sd_path, program, prefix, " ".join(statelist[i]))
+            command = "{0} -d {1} -a {2} -s {3}".format(seedlaunchpath, sd_path, args_file, " ".join(statelist[i]))
             log = os.path.join(sd_path, 'sim.log')
             errlog = os.path.join(sd_path, 'sim.err')
 
@@ -354,18 +356,18 @@ def ChiLaunch(simdirs, opts=''):
         queue = raw_input('Input job queue (default janus): ').strip()
         if queue == '': queue = "janus"
 
-    program = ''
-    prefix = ''
-    if mp:
-        program = raw_input('Input program you would like to run (default crosslink_sphero_bd_mp): ').strip()
-        if program == '': program = "crosslink_sphero_bd_mp"
-        prefix = raw_input('Input prefix to analysis files (default crosslink_sphero_bd_mp): ').strip()
-        if prefix == '': prefix = "crosslink_sphero_bd_mp"
-    elif not mp:
-        program = raw_input('Input program you would like to run (default spindle_bd_mp): ').strip()
-        if program == '': program = "spindle_bd_mp"
-        prefix = raw_input('Input prefix to analysis files (default spindle_bd_mp): ').strip()
-        if prefix == '': prefix = "spindle_bd_mp"
+    # program = ''
+    # prefix = ''
+    # if mp:
+    #     program = raw_input('Input program you would like to run (default crosslink_sphero_bd_mp): ').strip()
+    #     if program == '': program = "crosslink_sphero_bd_mp"
+    #     prefix = raw_input('Input prefix to analysis files (default crosslink_sphero_bd_mp): ').strip()
+    #     if prefix == '': prefix = "crosslink_sphero_bd_mp"
+    # elif not mp:
+    #     program = raw_input('Input program you would like to run (default spindle_bd_mp): ').strip()
+    #     if program == '': program = "spindle_bd_mp"
+    #     prefix = raw_input('Input prefix to analysis files (default spindle_bd_mp): ').strip()
+    #     if prefix == '': prefix = "spindle_bd_mp"
 
     if not query_yes_no("Generating job ({0}) for states ({1}) with walltime ({2}) on queue ({3}) and allocation ({4}) with scheduler({5}).".format(program, ", ".join(runstates), walltime, queue, allocation, scheduler)):
         return 1
