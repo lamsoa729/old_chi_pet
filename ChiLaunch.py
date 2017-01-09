@@ -152,8 +152,8 @@ cd $PBS_O_WORKDIR
 
 # Create parallel job submissions to be run on the same node
 def create_parallel_job(seedpaths, statelist, job_name="ChiRun", walltime="1:00", 
-        processors = "nodes=1:ppn=1", queue="janus-long", 
-        allocation="UCB00000513", qmgr='slurm', 
+        processors = "nodes=1:ppn=1", queue="janus-long", args_file="args.yaml",
+        allocation="UCB00000513", qmgr='slurm'):
         # program="spb_dynamics", prefix="spindle_bd_mp"):
     print "creating jobs for:"
     for i, sd_path in enumerate(seedpaths):
@@ -369,7 +369,7 @@ def ChiLaunch(simdirs, opts=''):
     #     prefix = raw_input('Input prefix to analysis files (default spindle_bd_mp): ').strip()
     #     if prefix == '': prefix = "spindle_bd_mp"
 
-    if not query_yes_no("Generating job ({0}) for states ({1}) with walltime ({2}) on queue ({3}) and allocation ({4}) with scheduler({5}).".format(program, ", ".join(runstates), walltime, queue, allocation, scheduler)):
+    if not query_yes_no("Generating job for states ({0}) with walltime ({1}) on queue ({2}) and allocation ({3}) with scheduler({4}).".format(" ".join(runstates), walltime, queue, allocation, scheduler)):
         return 1
 
     processors = "nodes={0}:ppn={1}".format(nodes,ppn)
@@ -383,7 +383,7 @@ def ChiLaunch(simdirs, opts=''):
             if endi > len(seeds):
                 endi = len(seeds)
             if endi > starti:
-                create_parallel_job(seeds[starti:endi], states[starti:endi], walltime=walltime, allocation=allocation, queue=queue, qmgr=scheduler, processors=processors, program=program, prefix=prefix)
+                create_parallel_job(seeds[starti:endi], states[starti:endi], walltime=walltime, allocation=allocation, queue=queue, qmgr=scheduler, processors=processors)
             # Torque scheduler has a 10 second update time 
             # make sure you wait before adding another
             import time
