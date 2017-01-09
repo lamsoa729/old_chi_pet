@@ -19,6 +19,11 @@ def CreateYamlFilesFromDict(seed_dir, yml_file_dict):
         with open(path, 'w') as of:
             yaml.dump(d, of, default_flow_style=False)
 
+def CreateDictFromYamlFile(path): 
+    with open(path, 'r') as f:
+        ydict = yaml.open(f)
+        return ydict
+
 # Function that creates a list of list of all possible parameter indices
 def ind_recurse(pi_list, p_index=0):
     l = [] # return list

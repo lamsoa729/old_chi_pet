@@ -29,12 +29,12 @@ def parse_args():
 
     parser.add_argument('-n', type=int, default=10,
             help='Number of different parameter sets used.')
-    parser.add_argument('-l','--log', default=False, action='store_true',
-            help='Create a log file of all arguments specified.')
     parser.add_argument('-a', '--args_file', type=str,
             help='Name file that holds the program argument list. (Used with --create option and --launch option)')
     parser.add_argument('-d', '--workdir', type=str,
             help='Name of the working directory where simulation will be run. Used with --run option only)')
+    parser.add_argument('-s', '--states', nargs='+', type=str,
+            help='Name of all the states the simulation will run eg. start, build, analyze, etc.')
     # parser.add_argument('-p', '--prep', metavar='PREP_FILES', nargs='+',
     #         # TODO Need to create custom action here I think
     #         const=['sim.start', 'sim.analyze'], type=str, default=[],
@@ -56,9 +56,6 @@ def parse_args():
     # RUN options only
     parser.add_argument('-R', '--run', action="store_true",
             help='Runs a singular seed directory. Need --args_file.')
-    parser.add_argument('-s', '--states', nargs='+', type=str,
-            help='Name of all the states the simulation will run eg. start, build, analyze, etc. (Used with --run option only)')
-
 
     opts = parser.parse_args()
     return opts
@@ -71,13 +68,20 @@ class ChiMain(object):
         self.opts = opts
         self.yml_files_dict = {} # combined dictionary of all yaml files
         self.cwd = os.getcwd()
+        self.ChiParams = []
+        self.ReadOpts()
+        self.ProgOpts()
+
+    def ReadOpts()
         # TODO This might not be fully integrated just yet
         if not self.opts.workdir:
             self.opts.workdir = self.cwd
-        self.ChiParams = []
-        self.ReadOpts()
 
-    def ReadOpts(self):
+        if not self.opts.states and self.opts.args_file:
+            yd = CreateDictFromYamlFile(self.opts.args_file)
+            self.opts.states = yd.keys()
+
+    def ProgOpts(self):
         # Read all the file names given in options and combine into main yaml dict
         if self.opts.launch:
             ChiLaunch(simdirs=self.opts.launch, opts=self.opts)

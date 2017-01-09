@@ -19,13 +19,25 @@ default_args = { 'run': [ 'spindle_bd_mp',
                           'spindle_bd_mp.default',
                           'spindle_bd_mp.equil',
                           'spindle_bd_mp.yaml',
-                          'crosslink_params.yaml'],
-                 'analyze': [ 'spindle_analsysis',
+                          'crosslink_params.yaml' ],
+                  'analyze': [ 'spindle_analsysis',
                               'spindle_bd_mp.default',
                               'spindle_bd_mp.equil',
                               'spindle_bd_mp.initial_config',
                               'spindle_bd_mp.posit']
-                 }
+               }
+# TODO Future args.yaml file so order is preserved.
+# default_args = { [{'run': [ 'spindle_bd_mp',
+                          # 'spindle_bd_mp.default',
+                          # 'spindle_bd_mp.equil',
+                          # 'spindle_bd_mp.yaml',
+                          # 'crosslink_params.yaml'}],
+                  # {'analyze': [ 'spindle_analsysis',
+                              # 'spindle_bd_mp.default',
+                              # 'spindle_bd_mp.equil',
+                              # 'spindle_bd_mp.initial_config',
+                              # 'spindle_bd_mp.posit']}
+                 # ] }
 
 def run_parse_args():
     parser = argparse.ArgumentParser(prog='Chi.py')
@@ -86,6 +98,10 @@ class ChiRun(object):
             else:
                 af = default_args
 
+        #TODO Make this more flexible by not requiring the states to be
+        # start, analyze, etc. Let the args_file specify the capable sims.
+        # To do this you must make args.yaml files either ordered dictionaries 
+        # or a list of dictionaries with singular entries
         if 'start' in opts.states:
             if run_start(opts.workdir, af['start']):
                 print "run failed"
