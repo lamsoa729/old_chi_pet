@@ -288,10 +288,6 @@ def query_yes_no(question, default="yes"):
 def ChiLaunch(simdirs, opts=''):
     # List of all the seeds that will be run
     seeddirs = []
-
-    if opts.prog_options:
-        # Do yaml things
-        print "prog_options not implemented yet."
     
     for simd in simdirs:
         print "Searching for path {0}".format(simd)
