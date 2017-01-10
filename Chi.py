@@ -72,7 +72,7 @@ class ChiMain(object):
         self.ReadOpts()
         self.ProgOpts()
 
-    def ReadOpts()
+    def ReadOpts(self):
         # TODO This might not be fully integrated just yet
         if not self.opts.workdir:
             self.opts.workdir = self.cwd

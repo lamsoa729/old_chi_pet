@@ -6,6 +6,7 @@ import re
 import numpy as np 
 import shutil
 import yaml
+from collections import OrderedDict
 from math import *
 
 '''
@@ -15,14 +16,41 @@ Description: Library of used functions for Chi-Launcher
 
 def CreateYamlFilesFromDict(seed_dir, yml_file_dict):
     for f, d in yml_file_dict.iteritems():
+        # print "File= {}, Dictionary= {}".format(f, d)
         path = os.path.join(seed_dir, f)
         with open(path, 'w') as of:
-            yaml.dump(d, of, default_flow_style=False)
+            OrderedYamlDump(d, of, default_flow_style=False)
+            # yaml.dump(d, of, default_flow_style=False)
 
 def CreateDictFromYamlFile(path): 
     with open(path, 'r') as f:
-        ydict = yaml.open(f)
+        # ydict = yaml.open(f)
+        ydict = OrderedYamlLoad(f)
         return ydict
+
+# Taken from http://stackoverflow.com/questions/5121931/in-python-how-can-you-load-yaml-mappings-as-ordereddicts/21048064#21048064
+# Usage: yaml_dict = OrderedYamlLoad(istream)
+def OrderedYamlLoad(stream, Loader=yaml.Loader, object_pairs_hook=OrderedDict):
+    class OrderedLoader(Loader):
+        pass
+    def construct_mapping(loader, node):
+        loader.flatten_mapping(node)
+        return object_pairs_hook(loader.construct_pairs(node))
+    OrderedLoader.add_constructor(
+        yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
+        construct_mapping)
+    return yaml.load(stream, OrderedLoader)
+
+# Usage: OrderedYamlDump(yaml_dictionary, ostream)
+def OrderedYamlDump(data, stream=None, Dumper=yaml.Dumper, **kwds):
+    class OrderedDumper(Dumper):
+        pass
+    def _dict_representer(dumper, data):
+        return dumper.represent_mapping(
+            yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
+            data.items())
+    OrderedDumper.add_representer(OrderedDict, _dict_representer)
+    return yaml.dump(data, stream, OrderedDumper, **kwds)
 
 # Function that creates a list of list of all possible parameter indices
 def ind_recurse(pi_list, p_index=0):

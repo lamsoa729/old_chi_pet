@@ -8,6 +8,7 @@ import numpy as np
 from shutil import copy
 from math import *
 import yaml
+from collections import OrderedDict
 from ChiLib import *
 
 '''

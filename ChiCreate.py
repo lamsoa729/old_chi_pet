@@ -9,6 +9,7 @@ import argparse
 import re
 ## Analysis
 from ChiParams import ChiParam, ChiSim
+from collections import OrderedDict
 from ChiLib import *
 
 '''
@@ -24,7 +25,7 @@ class ChiCreate(object):
         # Owned parameters
         self.cwd = cwd
         self.opts = opts
-        self.yml_files_dict = {} # combined dictionary of all yaml files
+        self.yml_files_dict = OrderedDict() # combined dictionary of all yaml files
         self.ChiParams = []
         self.Sim = None
 
@@ -39,8 +40,10 @@ class ChiCreate(object):
         # Take input yaml files and create master dictionary from them
         for f_name in self.opts.create:
             if os.path.isfile(f_name):
-                with open(f_name) as f:
-                    self.yml_files_dict[f_name] = yaml.load(f)
+                self.yml_files_dict[f_name]=CreateDictFromYamlFile(f_name)
+                # with open(f_name) as f:
+                    # self.yml_files_dict[f_name] = yaml.load(f)
+        # print self.yml_files_dict
 
     def MakeChiParams(self, xilist):
         for x in xilist:

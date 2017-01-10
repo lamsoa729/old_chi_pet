@@ -4,6 +4,8 @@ import os
 from subprocess import call
 import shutil
 import yaml
+from ChiLib import *
+from collections import OrderedDict
 import argparse
 
 '''
@@ -15,17 +17,17 @@ Output: Runs seed (singular) simulations
 
 # Dictionary of commands used for spindle_bd_mp.
 # This is the default commands when using ChiRun.
-default_args = { 'run': [ 'spindle_bd_mp',
+default_args = OrderedDict([ ('run', [ 'spindle_bd_mp',
                           'spindle_bd_mp.default',
                           'spindle_bd_mp.equil',
                           'spindle_bd_mp.yaml',
-                          'crosslink_params.yaml' ],
-                  'analyze': [ 'spindle_analsysis',
+                          'crosslink_params.yaml' ]),
+                  ('analyze', [ 'spindle_analsysis',
                               'spindle_bd_mp.default',
                               'spindle_bd_mp.equil',
                               'spindle_bd_mp.initial_config',
-                              'spindle_bd_mp.posit']
-               }
+                              'spindle_bd_mp.posit'])
+               ])
 # TODO Future args.yaml file so order is preserved.
 # default_args = { [{'run': [ 'spindle_bd_mp',
                           # 'spindle_bd_mp.default',
@@ -80,9 +82,21 @@ def run_analyze(workdir, args):
     else:
         return 1
 
+def run_args(workdir, state, args):
+    action = state+'-ing'
+    print "Started {} sim in {}".format(action, args)
+    sys.stdout.flush()
+    if os.path.exists(workdir):
+        os.chdir(workdir)
+        open('.'+action, 'a').close()
+        status = call(args)
+        os.remove('.'+action)
+        return status
+    else:
+        return 1
 
 class ChiRun(object):
-    def __init__(self,opts):
+    def __init__(self, opts):
         self.opts = opts
 
     def Run(self, opts):
@@ -93,27 +107,42 @@ class ChiRun(object):
         else:
             if (opts.args_file and 
                     os.path.exists(os.path.join(opts.workdir, opts.args_file))):
-                with open(os.path.join(opts.workdir, opts.args_file), 'r') as f:
-                    af = yaml.load(f)
+                    af = CreateDictFromYamlFile(os.path.join(opts.workdir, opts.args_file))
+                # with open(os.path.join(opts.workdir, opts.args_file), 'r') as f:
             else:
                 af = default_args
+
+        # print OrderedYamlDump(af, default_flow_style=False)
+        for k, l in af.iteritems():
+            print "File= {}, Dictionary= {}".format(k, " ".join(l))
+
+            if k in opts.states:
+                if run_args(opts.workdir, k, l):
+                    print "run failed"
+                    open('.error', 'a').close()
+                elif os.path.exists('sim.{}'.format(k)):
+                    os.remove('sim.{}'.format(k))
+
 
         #TODO Make this more flexible by not requiring the states to be
         # start, analyze, etc. Let the args_file specify the capable sims.
         # To do this you must make args.yaml files either ordered dictionaries 
         # or a list of dictionaries with singular entries
-        if 'start' in opts.states:
-            if run_start(opts.workdir, af['start']):
-                print "run failed"
-                open('.error', 'a').close()
-            else:
-                os.remove('sim.start')
-        if 'analyze' in opts.states:
-            if run_analyze(opts.workdir, af['analyze']):
-                print "run failed"
-                open('.error', 'a').close()
-            else:
-                os.remove('sim.analyze')
+
+
+
+        # if 'start' in opts.states:
+            # if run_start(opts.workdir, af['start']):
+                # print "run failed"
+                # open('.error', 'a').close()
+            # else:
+                # os.remove('sim.start')
+        # if 'analyze' in opts.states:
+            # if run_analyze(opts.workdir, af['analyze']):
+                # print "run failed"
+                # open('.error', 'a').close()
+            # else:
+                # os.remove('sim.analyze')
 
 if __name__ == '__main__':
 
