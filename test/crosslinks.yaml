@@ -1,0 +1,32 @@
+attachment-model: one-stage
+
+crosslink:
+#plus end motor (kinesin-5)
+  #- concentration_1 : 30190
+    #concentration_2 : [10.0, 10.0]
+  - concentration: 1.0
+    spring_constant : 45.29
+    #velocity : 0.142
+    velocity : ChiParam(format_str="vel{0:4f}", exec_str="LinearSlice(bounds=[0.0, 0.2])")
+    velocity_polar_scale : 0.08
+    velocity_antipolar_scale : 0.08
+    on_rate: 0.4
+    reservoir: 200 # Still need this for one-stage even though it doesn't do anything
+    #on_rate_1 : 0.003916
+    #on_rate_2 : 0.001958
+    equilibrium_length : 3.12
+    stall_force : 30.2
+    polar_affinity : 1.0
+    stall_type : parallel
+    barrier_weight : 0.258222586044
+    stabilization_scaling_vg : 1.53952906623
+    stabilization_scaling_vs : 0.0944027747085
+    stabilization_scaling_fc : 0.0981865601251
+    stabilization_scaling_fr : 18.4113940007
+    stabilization_length : 0.642369679198
+    diffusion_bound : 0.0
+    diffusion_bound_2 : 0.0
+    diffusion_free : 256
+    color : [1.0, 0.0, 0.0, 1.0]
+    end_pause : [0, 0]
+ 
