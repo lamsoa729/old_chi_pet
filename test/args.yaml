@@ -1,7 +1,3 @@
-build:
-  - fluid_builder_sphero
-  - fluid_builder_sphero.param
-
 start:
   - crosslink_sphero_bd_mp
   - default.yaml
