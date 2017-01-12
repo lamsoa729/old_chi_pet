@@ -29,7 +29,10 @@ ortho_scaling: 1
 poly_config: poly.initial_config
 press: 1.0
 reorientation_flag: 1
-seed: ChiSeed(bounds=[0,12])
+# Speficies the seed number used
+#   * This will generate 6 seeds, 0-5.
+#   * Can only generate seeds in sequence at the moment.
+seed: ChiSeed(bounds=[0,6])
 skin: 1.0
 v_depoly: 0
 v_poly: 0

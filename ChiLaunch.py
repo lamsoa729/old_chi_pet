@@ -66,7 +66,7 @@ from popen2 import popen2
 
 # Creates multithreaded processor jobs. 
 def create_multiprocessor_job(seedpaths, statelist, 
-        job_name="ChiRun", walltime="1:00", arg_file = "args.yaml",
+        job_name="ChiRun", walltime="1:00", args_file = "args.yaml",
         processors = "nodes=1:ppn=12", queue="janus", 
         allocation="UCB00000513", qmgr='slurm'):
 
