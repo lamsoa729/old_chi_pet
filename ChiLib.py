@@ -102,6 +102,17 @@ class ObjRef(object):
     def __repr__(self):
         return self.obj[self.key]
 
+def find_seed_dirs(path):
+    is_seed = re.compile('s\d+$')
+    for current, dirnames, filenames in os.walk(path):
+        if is_seed.search(current):
+            yield  os.path.abspath(current)
+
+def touch(filename):
+    with open(filename, 'a') as f:
+        f.close()
+
+# map(touch, find_xml_tests('path/to/files'))
 
 ##########################################
 if __name__ == "__main__":

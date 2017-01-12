@@ -31,14 +31,19 @@ def parse_args():
             help='Number of different parameter sets used.')
     parser.add_argument('-a', '--args_file', type=str,
             help='Name file that holds the program argument list. (Used with --create option and --launch option)')
+    # TODO If multiple workdirs are specified then have Chi.py run multiple times with the same commmand but different options
     parser.add_argument('-d', '--workdir', type=str,
             help='Name of the working directory where simulation will be run. Used with --run option only)')
     parser.add_argument('-s', '--states', nargs='+', type=str,
             help='Name of all the states the simulation will run eg. start, build, analyze, etc.')
-    # parser.add_argument('-p', '--prep', metavar='PREP_FILES', nargs='+',
-    #         # TODO Need to create custom action here I think
-    #         const=['sim.start', 'sim.analyze'], type=str, default=[],
-    #         help='Prepares sims to run with PREP_FILES. Can be used with builder or on its own. If used on its own you must be in the "simulations" directory.')
+
+    # PREP options
+    parser.add_argument('-P', '--prep', action='store_true',
+            help='Prepares sims to run with either states specified with -s or all argument states in -a ARG_FILES')
+
+    # REMOVE options
+    parser.add_argument('-rm', '--remove', nargs='+', metavar='FILE', type=str,
+            help='Removes FILEs from seed directories.')
 
     # LAUNCH options only
     parser.add_argument('-L', '--launch', nargs='+', type=str, metavar='DIRS',
@@ -94,6 +99,18 @@ class ChiMain(object):
             c = ChiRun(self.opts)
             c.Run(self.opts)
 
+        elif self.opts.prep:
+            seed_lst = find_seed_dirs(self.opts.workdir)
+            for sd_dir in seed_lst:
+                for s in self.opts.states:
+                    touch(os.path.join(sd_dir, 'sim.{}'.format(s)))
+
+        elif self.opts.remove:
+            seed_lst = find_seed_dirs(self.opts.workdir)
+            for sd_dir in seed_lst:
+                for fn in self.opts.remove:
+                    path = os.path.join(sd_dir, fn)
+                    if os.path.exists(path): os.remove(path)
 
 ##########################################
 if __name__ == "__main__":
