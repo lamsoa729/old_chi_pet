@@ -67,7 +67,8 @@ def ind_recurse(pi_list, p_index=0):
                 l += [[i]+ x]
     return l
 
-# Recursive function to find SACParams in program
+# Recursive function to find ChiParams in program and 
+# returns a list of references to those objects
 def find_str_values(obj, pattern='^ChiParam\(.*\)'):
     if isinstance(obj, list):
         for k, v in enumerate(obj):

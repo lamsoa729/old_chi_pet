@@ -5,6 +5,7 @@ import os
 import pdb
 import re
 import numpy as np 
+import random
 from shutil import copy
 from math import *
 import yaml
@@ -28,6 +29,9 @@ def LogSlice(n_vars, bounds, base=2):
     # print np.logspace(ex_start, ex_end, n_copies, base=base, endpoint=True)[index]
     return np.logspace(ex_start, ex_end, n_vars, base=base, endpoint=True)
 
+def UniformRandom(bounds):
+    return random.uniform(bounds[0], bounds[-1])
+
 # Class that 
 class ChiParam(object):
     def __init__(self, format_str="", exec_str="", paramtype=float, values=[]):
@@ -35,7 +39,7 @@ class ChiParam(object):
         self.exec_str = exec_str
         self.paramtype = paramtype
         self.values = values
-        self.UpdateValues()
+        # self.UpdateValues()
 
         self.obj_r = None # Object reference class will be set here (see ChiLib)
 
@@ -55,6 +59,10 @@ class ChiParam(object):
             self.values = map(self.paramtype, eval(self.exec_str))
         else:
             raise StandardError("ChiParam {} did not contain necessary inputs".format(self.format_str))
+
+    def AddValue(self):
+        # Used mostly with Shotgun Param function
+        self.values += [ self.paramtype(eval(self.exec_str)) ]
 
     def DirRepresentation(self, index):
         if not self.format_str:
@@ -82,10 +90,19 @@ class ChiParam(object):
         return self.format_str
 
 class ChiSim(object):
-    def __init__(self, xiparams, yml_file_dict, opts):
-        self.xiparams = xiparams
+    def __init__(self, chiparams, yml_file_dict, opts):
+        self.chiparams = chiparams
         self.yml_file_dict = yml_file_dict
         self.opts = opts
+
+    def UpdateParamValues(self):
+        for cparam in self.chiparams:
+            cparam.UpdateValues()
+
+    def UpdateShotgunParamValues(self, nvars):
+        for i in range(nvars):
+            for cparam in self.chiparams:
+                cparam.AddValue()
 
     def MakeSeeds(self):
         sd_obj = find_str_values(self.yml_file_dict, 
@@ -96,7 +113,7 @@ class ChiSim(object):
 
     def MakeSimDirectory(self, run_dir, ind_lst=[]):
         sim_name = ""
-        for i,p in zip(ind_lst, self.xiparams):
+        for i,p in zip(ind_lst, self.chiparams):
             # dir_name += "{}_".format(p.format(p[i]))
             p.UpdateParamValue(i)
             sim_name += p.format(p[i]) + "_"

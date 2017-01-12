@@ -58,6 +58,10 @@ def parse_args():
     parser.add_argument('--fluid_config', default='',
             help='Will add fluid.config file to seed directories when creating directory structure. Used with bulk simulations when all fluids start with the same configuration. (Used with --create option only)')
 
+    parser.add_argument('-S', '--shotgun', metavar='PARAM_FILE', 
+            nargs='+', type=str,
+            help='Creates seed directories with simulation structure that can be launched with ChiLaunch.py. PARAM_FILEs are copied into seed directories with ChiParams chosen according to the random distribution specified. Need -n to specify the number of random variants (default=10).')
+
     # RUN options only
     parser.add_argument('-R', '--run', action="store_true",
             help='Runs a singular seed directory. Need --args_file.')
@@ -92,8 +96,12 @@ class ChiMain(object):
             ChiLaunch(simdirs=self.opts.launch, opts=self.opts)
             
         elif self.opts.create:
-            c = ChiCreate(self.opts, self.cwd)
-            c.Create()
+            c = ChiCreate(self.opts, self.opts.workdir)
+            c.Create(self.opts.create)
+
+        elif self.opts.shotgun:
+            c = ChiCreate(self.opts, self.opts.workdir)
+            c.Create(self.opts.shotgun)
 
         elif self.opts.run:
             c = ChiRun(self.opts)
