@@ -11,6 +11,7 @@ from math import *
 import yaml
 from collections import OrderedDict
 from ChiLib import *
+from copy import copy
 
 '''
 Name:ChiParams.py
@@ -32,13 +33,13 @@ def LogSlice(n_vars, bounds, base=2):
 def UniformRandom(bounds):
     return random.uniform(bounds[0], bounds[-1])
 
-# Class that 
+# Class that holds all the values for a single parameter in a run
 class ChiParam(object):
     def __init__(self, format_str="", exec_str="", paramtype=float, values=[]):
         self.format_str = format_str
         self.exec_str = exec_str
         self.paramtype = paramtype
-        self.values = values
+        self.values = copy(values)
         # self.UpdateValues()
 
         self.obj_r = None # Object reference class will be set here (see ChiLib)
@@ -146,7 +147,7 @@ class ChiSeed(ChiParam):
 
 ##########################################
 if __name__ == "__main__":
-    print "Not implemented yet"
+    print "Not implemented. This is strictly a library."
 
 
 

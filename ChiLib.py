@@ -16,15 +16,12 @@ Description: Library of used functions for Chi-Launcher
 
 def CreateYamlFilesFromDict(seed_dir, yml_file_dict):
     for f, d in yml_file_dict.iteritems():
-        # print "File= {}, Dictionary= {}".format(f, d)
         path = os.path.join(seed_dir, f)
         with open(path, 'w') as of:
             OrderedYamlDump(d, of, default_flow_style=False)
-            # yaml.dump(d, of, default_flow_style=False)
 
 def CreateDictFromYamlFile(path): 
     with open(path, 'r') as f:
-        # ydict = yaml.open(f)
         ydict = OrderedYamlLoad(f)
         return ydict
 
@@ -113,11 +110,9 @@ def touch(filename):
     with open(filename, 'a') as f:
         f.close()
 
-# map(touch, find_xml_tests('path/to/files'))
-
 ##########################################
 if __name__ == "__main__":
-    print "Not implemented because this is strictly a library"
+    print "Not implemented. This is strictly a library."
 
 
 

@@ -15,8 +15,6 @@ from ChiLib import *
 '''
 Name: ChiCreate.py
 Description: Creates simulation structure to run simulations with ChiLaunch
-Input:
-Output:
 '''
 
 ##Class definition
@@ -68,17 +66,19 @@ class ChiCreate(object):
         sim_dir_name = "simulations"
         sim_dir = os.path.join(self.opts.workdir, sim_dir_name)
 
-        # Make container directory
+        # Make run directory
         if self.opts.replace and os.path.exists(sim_dir_name):
             shutil.rmtree(sim_dir)
-
         os.mkdir(sim_dir)
+
+        # Get all the permutations of values when running a slice
         if self.opts.create:
             # Get number of variations in each parameter set
             lst = [ x.GetNValues() for x in self.ChiParams ] 
             # Make a list of all the combinations of parameter indices
             l = ind_recurse(lst)
 
+        # For shotgun runs no permutation is required
         elif self.opts.shotgun:
             l = []
             for i in range(self.opts.n):
