@@ -6,7 +6,7 @@ import pdb
 import re
 import numpy as np 
 import random
-from shutil import copy
+from shutil import copy as cp
 from math import *
 import yaml
 from collections import OrderedDict
@@ -139,7 +139,7 @@ class ChiSeed(ChiParam):
             self.obj_r.Set(s)
             CreateYamlFilesFromDict(sd_dir, yml_file_dict)
             if opts.fluid_config:
-                copy(opts.fluid_config, sd_dir)
+                cp(opts.fluid_config, sd_dir)
             if opts.states:
                 for s in opts.states:
                     open(os.path.join(sd_dir, 'sim.{}'.format(s)), 'a')
