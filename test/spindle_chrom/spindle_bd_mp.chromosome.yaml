@@ -1,0 +1,45 @@
+chromosomes:
+  properties:
+    kc_diameter: 8.0
+    kc_spb_max_distance: 10.0
+    kc_spb_min_distance: 9.0
+    chromatin_rest_length: 0.0
+    chromatin_spring: 3.345
+    chromatin_torsion_spring: 12.0
+    mt_repulsion_spring: 20.0
+    Ndc80_number_complexes: 3
+    Ndc80_location_radius: 1.5
+    Ndc80_exclusion_radius: 0.2
+    Ndc80_spring: 45.29
+    Ndc80_rest_length: 2.16 #54nm
+    Ndc80_barrier_weight: 0.0
+    Ndc80_concentration: 20.0
+    Ndc80_on_rate: 0.001958
+    Ndc80_diffusion: 0.379
+  chromosome:
+    - insertion_type: spb
+      color: [1.0, 0.0, 1.0, 0.8]
+    #- insertion_type: spb
+    #  color: [1.0, 0.0, 1.0, 0.8]
+    #- insertion_type: spb
+    #  color: [1.0, 0.0, 1.0, 0.8]
+    #- insertion_type: xyz #chromatin test
+    #  color: [1.0, 0.0, 1.0, 0.8]
+    #  x0: [0.0, 0.0, 0.0]
+    #  u0: [1.0, 0.0, 0.0]
+    #  offset: [1.0, 0.0, 0.0]
+    #- insertion_type: xyz #wca test
+    #  color: [1.0, 0.0, 1.0, 0.8]
+    #  x0: [0.0, 0.0, 51.0]
+    #  u0: [1.0, 0.0, 0.0]
+    #  offset: [0.0, 0.0, 0.0]
+    #- insertion_type: xyz #mt recoil test
+    #  color: [1.0, 0.0, 1.0, 0.8]
+    #  x0: [2.0, 0.0, 0.0]
+    #  u0: [1.0, 0.0, 0.0]
+    #  offset: [0.0, 0.0, 0.0]
+    #- insertion_type: xyz #site creation test
+    #  color: [1.0, 0.0, 1.0, 0.8]
+    #  x0: [4.0, 0.0, 0.0]
+    #  u0: [1.0, 0.0, 0.0]
+    #  offset: [0.0, 0.0, 0.0]

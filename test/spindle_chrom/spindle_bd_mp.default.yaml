@@ -1,0 +1,42 @@
+n_posit : 1000
+n_thermo : 1000
+seed : 7468329
+config_file : tmp.config
+graph_flag : 1
+n_graph : 100
+grab_flag : 0
+grab_file : param/frames/frame
+color_file : param/color.def
+color_switch : 1
+n_overlaps : 100000
+delta : 0.1
+n_steps : 100000
+sphere_draw_flag : 1
+dynamic_instability_flag : 1
+neighb_switch : 1
+min_length : 4.0
+max_length : 0.0
+crosslink_stabilization_flag : 1
+crosslink_polar_affinity_flag : 0
+xlink_stage1_stabilization_flag: 0
+skin : 20.0
+mt_diffusion_flag : 1
+use_spb_flag : 1
+graph_boundary_flag: 1
+n_overlaps : 2
+omp_num_threads : 1
+kmp_blocktime : 1000
+omp_schedule : guided
+gomp_spincount : 1000000
+omp_chunksize : 2
+f_grow_to_pause: 0.0
+f_grow_to_shrink: 0.00237458231883
+f_pause_to_grow: 0.02
+f_pause_to_shrink: 0.0
+f_shrink_to_grow: 0.00009315333333
+f_shrink_to_pause: 0.0
+v_poly: 0.09730666667
+v_depoly: 0.159
+delta : 0.00025
+wait_time : 140
+sphere_draw_flag : 1

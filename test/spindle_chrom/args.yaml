@@ -1,0 +1,6 @@
+start:
+  - spindle_bd_mp
+  - default.yaml
+  - equil.yaml
+  - opt.yaml
+

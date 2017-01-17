@@ -1,0 +1,7 @@
+avg_flag : 0
+avg_steps : 100
+threshold : 0 
+data_collection_path : "./"
+suffix_title : "1.dat"
+
+data_collection_type :

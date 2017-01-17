@@ -1,0 +1,87 @@
+n_dim : 3
+system_diameter : 110
+sphere_diameter : 8.0
+
+spb:
+  - properties:
+      insertion_type : RTP
+      theta : 0.0
+      phi : 0.0
+      diameter : 9.5
+      attach_diameter : 6.5
+      r0 : 2.0
+      spring : 100.0
+      color: [1.0, 0.64453125, 0.0, 1.0]
+    mt:
+      - insertion_type: RTP
+        length: 100
+        theta: 0.0
+        phi: 0.0
+        orient: [0.0, 0.0, -1.0]
+#      - insertion_type : Random
+#        length : 3
+#      - insertion_type : Random
+#        length : 3
+#      - insertion_type : Random
+#        length : 3
+#      - insertion_type : Random
+#        length : 3
+#      - insertion_type : Random
+#        length : 3
+#      - insertion_type : Random
+#        length : 3
+#      - insertion_type : Random
+#        length : 3
+#      - insertion_type : Random
+#        length : 3
+#      - insertion_type : Random
+#        length : 3
+#      - insertion_type : Random
+#        length : 3
+#      - insertion_type : Random
+#        length : 3
+#      - insertion_type : Random
+#        length : 3
+#      - insertion_type : Random
+#        length : 3
+#      - insertion_type : Random
+#        length : 3
+#
+#  - properties:
+#      insertion_type : RTP
+#      theta : 0.177
+#      phi : 1.57
+#      diameter : 9.5
+#      attach_diameter : 6.5
+#      spring : 100.0
+#      r0 : 2.0
+#      color: [1.0, 0.64453125, 0.0, 1.0]
+#    mt:
+#      - insertion_type : Random
+#        length : 3
+#      - insertion_type : Random
+#        length : 3
+#      - insertion_type : Random
+#        length : 3
+#      - insertion_type : Random
+#        length : 3
+#      - insertion_type : Random
+#        length : 3
+#      - insertion_type : Random
+#        length : 3
+#      - insertion_type : Random
+#        length : 3
+#      - insertion_type : Random
+#        length : 3
+#      - insertion_type : Random
+#        length : 3
+#      - insertion_type : Random
+#        length : 3
+#      - insertion_type : Random
+#        length : 3
+#      - insertion_type : Random
+#        length : 3
+#      - insertion_type : Random
+#        length : 3
+#      - insertion_type : Random
+#        length : 3

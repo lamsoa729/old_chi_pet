@@ -1,0 +1,81 @@
+attachment-model: two-stage-explicit
+
+crosslink:
+#plus end motor (kinesin-5)
+  - reservoir : 184
+    concentration_1 : 30190
+    concentration_2 : [10.0, 10.0]
+    spring_constant : 45.29
+    velocity : -0.142
+    velocity_polar_scale : 0.5
+    velocity_antipolar_scale : -0.08
+    on_rate_1 : 0.003916
+    on_rate_2 : 0.001958
+    equilibrium_length : 3.12
+    stall_force : 30.2
+    polar_affinity : 1.0
+    stall_type : parallel
+    barrier_weight : 0.258222586044
+    stabilization_scaling_vg : 1.53952906623
+    stabilization_scaling_vs : 0.0944027747085
+    stabilization_scaling_fc : 0.0981865601251
+    stabilization_scaling_fr : 18.4113940007
+    stabilization_length : 0.642369679198
+    diffusion_bound : 0.0
+    diffusion_bound_2 : 0.0
+    diffusion_free : 256
+    color : [1.0, 0.0, 0.0, 1.0]
+    end_pause : [0, 0]
+ 
+#minus end motor (kinesin-14)
+  - reservoir : 80
+    concentration_1 : 8302.5
+    concentration_2 : [2.5, 2.5]
+    spring_constant : 45.29
+    velocity : [-0.0712, 0.0]
+    on_rate_1 : [0.003916, 0.00356]
+    on_rate_2 : [0.001958, 0.00177]
+    equilibrium_length : 3.12
+    stall_force : 30.2
+    polar_affinity : 1.0
+    stall_type : parallel
+    barrier_weight : 0.00272387388574
+    stabilization_scaling_vg : 1.53952906623
+    stabilization_scaling_vs : 0.0944027747085
+    stabilization_scaling_fc : 0.0981865601251
+    stabilization_scaling_fr : 18.4113940007
+    stabilization_length : 0.642369679198
+    diffusion_bound : [0.0, 5.69]
+    diffusion_bound_2 : [0.0, 0.379]
+    diffusion_free : 256
+    velocity_polar_scale : 1.0
+    velocity_antipolar_scale : 1.0
+    color : [0.0, 0.0, 1.0, 1.0]
+    end_pause : [0, 0]
+ 
+#static xlinker (ase1)
+  - reservoir : 110
+    concentration_1 : 33210
+    concentration_2 : 10.0
+    spring_constant : 31.25
+    velocity : 0.0
+    on_rate_1 : 0.00356
+    on_rate_2 : 0.00177
+    equilibrium_length : 3.12
+    stall_force : 30.2
+    polar_affinity : 0.33333333
+    stall_type : parallel
+    barrier_weight : 0.0162633055374 
+    stabilization_scaling_vg : 1.53952906623
+    stabilization_scaling_vs : ChiParam(format_str="svs{0:4f}", exec_str="LinearSlice(bounds=[0.0, 1.0], n_vars=10)")
+    #stabilization_scaling_vs : 0.0944027747085
+    stabilization_scaling_fc : 0.0981865601251
+    stabilization_scaling_fr : 18.4113940007
+    stabilization_length : 0.642369679198
+    diffusion_bound : 5.69
+    diffusion_bound_2 : 0.379
+    diffusion_free : 256
+    velocity_polar_scale : 1.0
+    velocity_antipolar_scale : 1.0
+    color : [0.0, 0.0, 0.0, 1.0]
+    end_pause : [1, 1]
