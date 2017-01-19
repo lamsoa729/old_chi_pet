@@ -9,6 +9,7 @@ import random
 from shutil import copy as cp
 from math import *
 import yaml
+from itertools import repeat
 from collections import OrderedDict
 from ChiLib import *
 from copy import copy
@@ -24,11 +25,24 @@ def LinearSlice(bounds, n_vars=10):
     return np.linspace(bounds[0], bounds[-1], n_vars)
 
 # Creates a log spacing of n_vars between bounds[0] and bounds[-1]
-def LogSlice(n_vars, bounds, base=2):
+def LogSlice(bounds, n_vars=10, base=2):
     ex_start = log(bounds[0], base)
     ex_end = log(bounds[-1], base)
     # print np.logspace(ex_start, ex_end, n_copies, base=base, endpoint=True)[index]
     return np.logspace(ex_start, ex_end, n_vars, base=base, endpoint=True)
+
+def Replicate(item_str, bounds=[], n_vars=None):
+    param_val_list = []
+    step = 1
+    if n_vars:
+        step = (int(bounds[-1]) - int(bounds[0]))/n_vars
+    for i in range(int(bounds[0]),int(bounds[-1]+1), step):
+        param_val_list +=[ [ eval(item_str) for _ in range(i) ] ]
+        # l = [ eval(item_str) for _ in range(i) ] 
+        # param_val_list +=  [l]
+
+    print param_val_list
+    return param_val_list
 
 def UniformRandom(bounds):
     return random.uniform(bounds[0], bounds[-1])
@@ -58,6 +72,7 @@ class ChiParam(object):
             self.values = map(self.paramtype, self.values)
         elif self.exec_str:
             self.values = map(self.paramtype, eval(self.exec_str))
+            print self.values
         else:
             raise StandardError("ChiParam {} did not contain necessary inputs".format(self.format_str))
 
@@ -76,7 +91,10 @@ class ChiParam(object):
             return self.format_str.format(self.values[index])
 
     def format(self, v):
-        return self.format_str.format(v)
+        if type(v) is list:
+            return self.format_str.format(len(v))
+        else:
+            return self.format_str.format(v)
 
     def GetParamType(self):
         return self.paramtype.__name__
@@ -117,6 +135,7 @@ class ChiSim(object):
         for i,p in zip(ind_lst, self.chiparams):
             # dir_name += "{}_".format(p.format(p[i]))
             p.UpdateParamValue(i)
+            # print p[i]
             sim_name += p.format(p[i]) + "_"
 
         sim_dir = os.path.join(run_dir, sim_name[:-1])
