@@ -243,17 +243,11 @@ def get_state(path):
     state = []
     # Find all sim.* (excluding sim.err and sim.log)
     file_pat = re.compile('sim\.(?!err)(?!log).+')
-    # onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f))]
     for f in os.listdir(path):
         if file_pat.match(f):
-            # print file_pat.match(f).group(0)
-        # if os.path.isfile(os.path.join(path,f)) and not(f != 'sim.log' or f != 'sim.err'):
             state.append(f.split('.')[-1]) # WARNING states may not have a '.' in the name.
-    # if os.path.isfile(os.path.join(path, 'sim.build')): state.append('build') 
-    # if os.path.isfile(os.path.join(path, 'sim.start')): state.append('start')
-    # if os.path.isfile(os.path.join(path, 'sim.resume-overwrite')): state.append('resume-overwrite') 
-    # if os.path.isfile(os.path.join(path, 'sim.resume-append')): state.append('resume-append') 
-    # if os.path.isfile(os.path.join(path, 'sim.analyze')): state.append('analyze')
+            # TODO In future use look ahead function in re.match to 
+            # to find correct state with list comprehension
     return state
 
 def is_running(path):
