@@ -2,5 +2,11 @@ start:
   - spindle_bd_mp
   - default.yaml
   - equil.yaml
-  - opt.yaml
+  #- opt.yaml
+
+analysis:
+  - spindle_analysis_new
+  - default.yaml
+  - equil.yaml
+  - spindle_bd_mp.posit
 

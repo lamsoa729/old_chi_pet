@@ -41,7 +41,7 @@ def Replicate(item_str, bounds=[], n_vars=None):
         # l = [ eval(item_str) for _ in range(i) ] 
         # param_val_list +=  [l]
 
-    print param_val_list
+    # print param_val_list
     return param_val_list
 
 def UniformRandom(bounds):
@@ -72,7 +72,7 @@ class ChiParam(object):
             self.values = map(self.paramtype, self.values)
         elif self.exec_str:
             self.values = map(self.paramtype, eval(self.exec_str))
-            print self.values
+            # print self.values
         else:
             raise StandardError("ChiParam {} did not contain necessary inputs".format(self.format_str))
 

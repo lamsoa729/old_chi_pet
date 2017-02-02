@@ -3,6 +3,7 @@ import sys
 import os
 import yaml
 import argparse
+import re
 
 from popen2 import popen2
 
@@ -240,11 +241,19 @@ cd $PBS_O_WORKDIR
 
 def get_state(path):
     state = []
-    if os.path.isfile(os.path.join(path, 'sim.build')): state.append('build') 
-    if os.path.isfile(os.path.join(path, 'sim.start')): state.append('start')
-    if os.path.isfile(os.path.join(path, 'sim.resume-overwrite')): state.append('resume-overwrite') 
-    if os.path.isfile(os.path.join(path, 'sim.resume-append')): state.append('resume-append') 
-    if os.path.isfile(os.path.join(path, 'sim.analyze')): state.append('analyze')
+    # Find all sim.* (excluding sim.err and sim.log)
+    file_pat = re.compile('sim\.(?!err)(?!log).+')
+    # onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f))]
+    for f in os.listdir(path):
+        if file_pat.match(f):
+            # print file_pat.match(f).group(0)
+        # if os.path.isfile(os.path.join(path,f)) and not(f != 'sim.log' or f != 'sim.err'):
+            state.append(f.split('.')[-1]) # WARNING states may not have a '.' in the name.
+    # if os.path.isfile(os.path.join(path, 'sim.build')): state.append('build') 
+    # if os.path.isfile(os.path.join(path, 'sim.start')): state.append('start')
+    # if os.path.isfile(os.path.join(path, 'sim.resume-overwrite')): state.append('resume-overwrite') 
+    # if os.path.isfile(os.path.join(path, 'sim.resume-append')): state.append('resume-append') 
+    # if os.path.isfile(os.path.join(path, 'sim.analyze')): state.append('analyze')
     return state
 
 def is_running(path):
@@ -306,7 +315,7 @@ def ChiLaunch(simdirs, opts=''):
     
     # Determines the programs that will be run on seed directories
     runstates = raw_input("List space separated states you wish to run (leave blank for all): ").split(' ')
-    if runstates[0] == '': runstates = ['build', 'start', 'resume-overwrite', 'resume-append', 'analyze']
+    if runstates[0] == '': runstates = 'all'
 
     seeds = [] # Seed directories to be run
     states = [] # States of seed directories
@@ -316,7 +325,9 @@ def ChiLaunch(simdirs, opts=''):
     for sdd in seeddirs:
         if not is_running(sdd) and not is_error(sdd):
             state = get_state(sdd)
-            state = list(set(state).intersection(set(runstates)))
+            # print state
+            if runstates != 'all':
+                state = list(set(state).intersection(set(runstates)))
             if state:
                 seeds.append(sdd)
                 states.append(state)
