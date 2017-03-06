@@ -124,10 +124,6 @@ class ChiRun(object):
                     os.remove('sim.{}'.format(k))
 
 
-        #TODO Make this more flexible by not requiring the states to be
-        # start, analyze, etc. Let the args_file specify the capable sims.
-        # To do this you must make args.yaml files either ordered dictionaries 
-        # or a list of dictionaries with singular entries
 
 
 

@@ -331,8 +331,8 @@ def ChiLaunch(simdirs, opts=''):
     if n_jobs == '': n_jobs = len(seeds)
     else: n_jobs = int(n_jobs)
 
-    scheduler = raw_input('Input scheduler (default torque): ').strip()
-    if scheduler == '': scheduler = "torque"
+    scheduler = raw_input('Input scheduler (default slurm): ').strip()
+    if scheduler == '': scheduler = "slurm"
 
     walltime = raw_input('Input walltime (dd:hh:mm:ss), (default 23:59:00): ' ).strip()
     if walltime == '': walltime = "23:59:00"
@@ -352,10 +352,10 @@ def ChiLaunch(simdirs, opts=''):
         if queue == '': queue = "short2gb"
 
     elif scheduler == "slurm":
-        ppn = raw_input('Input number of processes per node (default 12): ').strip()
-        if ppn == '': ppn = "12"
-        queue = raw_input('Input job queue (default janus): ').strip()
-        if queue == '': queue = "janus"
+        queue = raw_input('Input job queue (default shas): ').strip()
+        if queue == '': queue = "shas"
+        ppn = raw_input('Input number of processes per node (default 24): ').strip()
+        if ppn == '': ppn = "24"
 
     # program = ''
     # prefix = ''
