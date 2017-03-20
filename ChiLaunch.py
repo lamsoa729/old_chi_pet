@@ -181,15 +181,15 @@ def create_parallel_job(seedpaths, statelist, job_name="ChiRun", walltime="1:00"
 #SBATCH --job-name={0}
 #SBATCH -t {1}
 #SBATCH -N {2}
-#SBATCH -o {3}
-#SBATCH -e {4}
-#SBATCH -A {5}
-#SBATCH --qos={6}
+#SBATCH --ntasks-per-node {3}
+#SBATCH -o {4}
+#SBATCH -e {5}
+#SBATCH --partition={6}
 
 cd $SLURM_SUBMIT_DIR
 
 
-""".format(job_name, walltime, nnodes, log, errlog, allocation, queue)
+""".format(job_name, walltime, nnodes, nprocs, log, errlog, queue)
         for i, sd_path in enumerate(seedpaths):
             sd_path = os.path.abspath(sd_path)
             # command = "{0} {1} {2} {3} {4}".format(seedlaunchpath, sd_path, program, prefix, " ".join(statelist[i]))
