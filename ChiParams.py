@@ -58,6 +58,8 @@ class ChiParam(object):
 
         self.obj_r = None # Object reference class will be set here (see ChiLib)
 
+        self.GetBounds()
+
     def SetObjRef(self, obj_r):
         self.obj_r = obj_r
 
@@ -66,6 +68,20 @@ class ChiParam(object):
 
     def GetNValues(self):
         return len(self.values)
+
+    def GetBounds(self):
+        # Parse the exec_str looking for bounds
+        import re
+        #print "exec_str: {}".format(self.exec_str)
+        pattern = re.compile(r""".*
+                              bounds=\[(?P<bound1>.*?),(?P<bound2>.*?)\]
+                              .*""", re.VERBOSE)
+        match = pattern.match(self.exec_str)
+        if match:
+            bound1 = float(match.group("bound1"))
+            bound2 = float(match.group("bound2"))
+            #print "[{}, {}]".format(bound1, bound2)
+            self.bounds = [bound1, bound2]
 
     def UpdateValues(self):
         if self.values:
@@ -142,6 +158,12 @@ class ChiSim(object):
         os.mkdir(sim_dir)
         print "   {}".format(sim_dir)
         self.seeds.MakeSeedDirectories(sim_dir, self.yml_file_dict, self.opts)
+
+    def DumpPickle(self, sim_dir):
+        pkl_filename = os.path.join(sim_dir, 'sim_data.pickle')
+        with open(pkl_filename, 'w') as pkl_file:
+            import pickle
+            pickle.dump(self, pkl_file)
 
 # Class to fill Sim directories with seed directories
 class ChiSeed(ChiParam):

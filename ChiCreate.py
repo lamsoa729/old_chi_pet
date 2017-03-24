@@ -11,6 +11,7 @@ import re
 from ChiParams import ChiParam, ChiSim
 from collections import OrderedDict
 from ChiLib import *
+from ChiParticleSwarm import ChiParticleSwarmGeneration
 
 '''
 Name: ChiCreate.py
@@ -59,17 +60,22 @@ class ChiCreate(object):
             self.Sim.UpdateParamValues()
         elif self.opts.shotgun:
             self.Sim.UpdateShotgunParamValues(self.opts.n)
+        elif self.opts.particleswarmcreate: # Duplicates the behavior of the shotgun approach
+            self.Sim.UpdateShotgunParamValues(self.opts.n)
 
         self.Sim.MakeSeeds()
 
     def MakeDirectoryStruct(self):
         sim_dir_name = "simulations"
+        if self.opts.particleswarmcreate:
+            sim_dir_name = "generations/gen0"
         sim_dir = os.path.join(self.opts.workdir, sim_dir_name)
 
         # Make run directory
         if self.opts.replace and os.path.exists(sim_dir_name):
             shutil.rmtree(sim_dir)
-        os.mkdir(sim_dir)
+        #os.mkdir(sim_dir)
+        os.makedirs(sim_dir)
 
         # Get all the permutations of values when running a slice
         if self.opts.create:
@@ -79,7 +85,7 @@ class ChiCreate(object):
             l = ind_recurse(lst)
 
         # For shotgun runs no permutation is required
-        elif self.opts.shotgun:
+        elif self.opts.shotgun or self.opts.particleswarmcreate:
             l = []
             for i in range(self.opts.n):
                 l += [ [i]*len(self.ChiParams) ]
@@ -89,6 +95,23 @@ class ChiCreate(object):
         print " -- Making simulations -- "
         for il in l:
             self.Sim.MakeSimDirectory(sim_dir_name, il)
+
+        # Dump the information to pickle
+        #self.Sim.DumpPickle(sim_dir)
+        if self.opts.particleswarmcreate:
+            self.particleswarm = ChiParticleSwarmGeneration(self.Sim, 0)
+            self.particleswarm.savestate(sim_dir)
+
+    def TestPickleDump(self, sim_dir):
+        # Test the dump functionality
+        import pickle
+        pkl_filename = os.path.join(sim_dir, 'sim_data.pickle')
+        newsim = pickle.load(open(pkl_filename, 'rb'))
+        print "newsim: {}".format(newsim)
+        for chiparam in newsim.chiparams:
+            print "newsim.chiparam: {}".format(chiparam)
+            print "values: {}".format(chiparam.values)
+            print "bounds: {}".format(chiparam.bounds)
 
 ##########################################
 if __name__ == "__main__":

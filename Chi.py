@@ -62,6 +62,10 @@ def parse_args():
             nargs='+', type=str,
             help='Creates seed directories with simulation structure that can be launched with ChiLaunch.py. PARAM_FILEs are copied into seed directories with ChiParams chosen according to the random distribution specified. Need -n to specify the number of random variants (default=10).')
 
+    parser.add_argument('-PSC', '--particleswarmcreate', metavar='PARAM_FILE', 
+            nargs='+', type=str,
+            help='Particle Swarm Optimization Creation. Creates seed directories with simulation structure that can be launched with ChiLaunch.py. PARAM_FILEs are copied into seed directories with ChiParams chosen according to the random distribution specified. Need -n to specify the number of random population members (default=10).')
+
     # RUN options only
     parser.add_argument('-R', '--run', action="store_true",
             help='Runs a singular seed directory. Need --args_file.')
@@ -102,6 +106,10 @@ class ChiMain(object):
         elif self.opts.shotgun:
             c = ChiCreate(self.opts, self.opts.workdir)
             c.Create(self.opts.shotgun)
+
+        elif self.opts.particleswarmcreate:
+            c = ChiCreate(self.opts, self.opts.workdir)
+            c.Create(self.opts.particleswarmcreate)
 
         elif self.opts.run:
             c = ChiRun(self.opts)
