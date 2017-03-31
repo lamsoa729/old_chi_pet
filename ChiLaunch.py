@@ -69,7 +69,7 @@ from popen2 import popen2
 def create_multiprocessor_job(seedpaths, statelist, 
         job_name="ChiRun", walltime="1:00", args_file = "args.yaml",
         processors = "nodes=1:ppn=12", queue="janus", 
-        allocation="UCB00000513", qmgr='slurm'):
+        allocation="ucb-summit-smr", qmgr='slurm'):
 
     print "creating jobs for:"
     for i, sd_path in enumerate(seedpaths):
@@ -154,7 +154,7 @@ cd $PBS_O_WORKDIR
 # Create parallel job submissions to be run on the same node
 def create_parallel_job(seedpaths, statelist, job_name="ChiRun", walltime="1:00", 
         processors = "nodes=1:ppn=1", queue="janus-long", args_file="args.yaml",
-        allocation="UCB00000513", qmgr='slurm'):
+        allocation="ucb-summit-smr", qmgr='slurm'):
         # program="spb_dynamics", prefix="spindle_bd_mp"):
     print "creating jobs for:"
     for i, sd_path in enumerate(seedpaths):
@@ -184,12 +184,14 @@ def create_parallel_job(seedpaths, statelist, job_name="ChiRun", walltime="1:00"
 #SBATCH --ntasks-per-node {3}
 #SBATCH -o {4}
 #SBATCH -e {5}
-#SBATCH --partition={6}
+#SBATCH -A {6}
+#SBATCH --qos={7}
+#SBATCH --partition={8}
 
 cd $SLURM_SUBMIT_DIR
 
 
-""".format(job_name, walltime, nnodes, nprocs, log, errlog, queue)
+""".format(job_name, walltime, nnodes, nprocs, log, errlog, allocation, "condo", queue)
         for i, sd_path in enumerate(seedpaths):
             sd_path = os.path.abspath(sd_path)
             # command = "{0} {1} {2} {3} {4}".format(seedlaunchpath, sd_path, program, prefix, " ".join(statelist[i]))
@@ -337,8 +339,8 @@ def ChiLaunch(simdirs, opts=''):
     walltime = raw_input('Input walltime (dd:hh:mm:ss), (default 23:59:00): ' ).strip()
     if walltime == '': walltime = "23:59:00"
 
-    allocation = raw_input('Input allocation (default UCB00000513): ').strip()
-    if allocation == '': allocation = "UCB00000513"
+    allocation = raw_input('Input allocation (default ucb-summit-smr): ').strip()
+    if allocation == '': allocation = "ucb-summit-smr"
 
     mp = False if query_yes_no("Single processor job?") else True
 
