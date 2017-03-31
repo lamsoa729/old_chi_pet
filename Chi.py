@@ -11,6 +11,7 @@ import re
 from ChiParams import ChiParam, ChiSim
 from ChiLaunch import ChiLaunch
 from ChiCreate import ChiCreate
+from ChiParticleSwarm import ChiParticleSwarm
 from ChiRun import ChiRun
 from ChiLib import *
 
@@ -108,7 +109,7 @@ class ChiMain(object):
             c.Create(self.opts.shotgun)
 
         elif self.opts.particleswarmcreate:
-            c = ChiCreate(self.opts, self.opts.workdir)
+            c = ChiParticleSwarm(self.opts, self.opts.workdir, 0)
             c.Create(self.opts.particleswarmcreate)
 
         elif self.opts.run:

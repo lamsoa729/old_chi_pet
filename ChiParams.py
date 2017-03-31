@@ -13,6 +13,7 @@ from itertools import repeat
 from collections import OrderedDict
 from ChiLib import *
 from copy import copy
+from copy import deepcopy
 
 '''
 Name:ChiParams.py
@@ -164,6 +165,123 @@ class ChiSim(object):
         with open(pkl_filename, 'w') as pkl_file:
             import pickle
             pickle.dump(self, pkl_file)
+
+    ### Just some utility stuff
+    def FakeGaussianSignal(self, x, mu, sigma):
+        return np.exp(-np.power(x - mu, 2.) / (2 * np.power(sigma, 2.)))
+
+    ### ParticleSwarm specific information
+    def CreateParticleSwarm(self):
+        self.nparticles = self.opts.n
+        self.pbest = [np.float(0) for i in xrange(self.nparticles)]
+        self.pbestid = [np.int(i) for i in xrange(self.nparticles)]
+        self.pbestx = [deepcopy(self.chiparams) for i in xrange(self.nparticles)]
+        self.gbest = np.float(0)
+        self.gbestid = np.int(0)
+        self.gbestx = None
+        self.fitness = [np.float(0) for i in xrange(self.nparticles)]
+        self.velocity = np.zeros((self.nparticles, len(self.chiparams)))
+        # For each chiparam, create a velocity based on the vmax for each particle and each chiparam
+        for ichi in xrange(len(self.chiparams)):
+            vmax = self.chiparams[ichi].bounds[1] - self.chiparams[ichi].bounds[0]
+            #print "chiparam{} vmax {}".format(ichi, vmax)
+            for idx in xrange(self.nparticles):
+                self.velocity[idx][ichi] = random.uniform(-vmax, vmax)
+        #print "velocity: {}".format(self.velocity)
+
+    # Update the fitness of myself for all the subsims
+    def UpdateFitness(self):
+        print " -- Simulations Checking and Updating Fitness -- "
+        # XXX FIXME spoof this for now
+        print " WARNING ERROR Using fake fitness function!!!!!"
+        for idx in xrange(self.nparticles):
+            x = self.chiparams[0].values[idx]
+            y = self.chiparams[1].values[idx]
+            z = self.chiparams[2].values[idx]
+            self.fitness[idx] = self.FakeGaussianSignal(x, 184, 20) * self.FakeGaussianSignal(y, 80, 20) * self.FakeGaussianSignal(z, 110, 40)
+
+    # Update the best position of the swarm variables
+    def UpdateBest(self):
+        pcurr = [np.float(0) for i in xrange(self.nparticles)]
+        for i in xrange(self.nparticles):
+            pcurr[i] = self.fitness[i]
+            if pcurr[i] > self.pbest[i]:
+                self.pbest[i] = pcurr[i]
+                self.pbestx[i] = deepcopy(self.chiparams)
+                self.pbestid[i] = np.int(i)
+            if pcurr[i] > self.gbest:
+                self.gbest = pcurr[i]
+                self.gbestx = deepcopy(self.chiparams)
+                self.gbestid = np.int(i)
+
+    # Update the positions and velocities of the particles in the sytem
+    def UpdatePositions(self):
+        for idx in xrange(self.nparticles):
+            c1 = 2 * random.random()
+            c2 = 2 * random.random()
+            for ichi in xrange(len(self.chiparams)):
+                oldval = self.chiparams[ichi].values[idx]
+                upperb = self.chiparams[ichi].bounds[1]
+                lowerb = self.chiparams[ichi].bounds[0]
+                vmax = upperb - lowerb
+                pbestval = self.pbestx[idx][ichi].values[self.pbestid[idx]]
+                gbestval = self.gbestx[ichi].values[self.gbestid]
+                #print "oldval: {}".format(oldval)
+                #print "vmax:   {}".format(vmax)
+                #print "pbestval: {}".format(pbestval)
+                #print "gbestval: {}".format(gbestval)
+                # Update velocity
+                newvel = self.velocity[idx][ichi] * 0.6 + \
+                         c1 * (pbestval - oldval) + \
+                         c2 * (gbestval - oldval)
+                #print "newvel: {}".format(newvel)
+                if newvel > vmax:
+                    newvel = vmax
+                elif newvel < -vmax:
+                    newvel = -vmax
+
+                newpos = oldval + newvel
+                if newpos > upperb:
+                    newpos = 2*upperb - newpos
+                    newvel = -newvel
+                if newpos < lowerb:
+                    newpos = 2*lowerb - newpos
+                    newvel = -newvel
+
+                # Set the new variables
+                self.velocity[idx][ichi] = newvel
+                self.chiparams[ichi].values[idx] = self.chiparams[ichi].paramtype(newpos)
+            self.fitness[idx] = float('nan')
+
+
+    def PrintSwarmCurrent(self):
+        str0 = "id  fitness    "
+        for ichi in xrange(len(self.chiparams)):
+            str0 += "{:<10s}  {:>10s}  ".format(self.chiparams[ichi], "vel")
+        print str0
+        for idx in xrange(self.nparticles):
+            str1 = "{0:<3d}  {1:>6.3f} ".format(idx, self.fitness[idx])
+            for ichi in xrange(len(self.chiparams)):
+                str1 += " {0:10.3f}  ".format(self.chiparams[ichi].values[idx])
+                str1 += "  {0:10.3f}".format(self.velocity[idx][ichi])
+            print str1
+
+    def PrintSwarmBest(self):
+        str0 = "id  bestfit  "
+        for ichi in xrange(len(self.chiparams)):
+            str0 += "{:>10s}".format(self.chiparams[ichi])
+        print str0
+        for idx in xrange(self.nparticles):
+            str1 = "{0:<3d}  {1:>6.3f} ".format(idx, self.pbest[idx])
+            for ichi in xrange(len(self.chiparams)):
+                str1 += " {0:10.3f}  ".format(self.pbestx[idx][ichi].values[self.pbestid[idx]])
+            print str1
+
+        str2 = "{0:<3s}  {1:>6.3f} ".format("g", self.gbest)
+        for ichi in xrange(len(self.chiparams)):
+            str2 += " {0:10.3f}  ".format(self.gbestx[ichi].values[self.gbestid])
+        print str2
+
 
 # Class to fill Sim directories with seed directories
 class ChiSeed(ChiParam):

@@ -11,7 +11,6 @@ import re
 from ChiParams import ChiParam, ChiSim
 from collections import OrderedDict
 from ChiLib import *
-from ChiParticleSwarm import ChiParticleSwarmGeneration
 
 '''
 Name: ChiCreate.py
@@ -95,12 +94,6 @@ class ChiCreate(object):
         print " -- Making simulations -- "
         for il in l:
             self.Sim.MakeSimDirectory(sim_dir_name, il)
-
-        # Dump the information to pickle
-        #self.Sim.DumpPickle(sim_dir)
-        if self.opts.particleswarmcreate:
-            self.particleswarm = ChiParticleSwarmGeneration(self.Sim, 0)
-            self.particleswarm.savestate(sim_dir)
 
     def TestPickleDump(self, sim_dir):
         # Test the dump functionality
