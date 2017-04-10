@@ -123,11 +123,54 @@ class ChiParticleSwarm(ChiCreate):
         self.generation = self.nextgen
         self.MakeDirectoryStruct()
 
+    def Bias(self, opts):
+        # Load self like in procreate
+        generations = [dirname for dirname in os.listdir('generations') if dirname.startswith('gen')]
+        generationints = [int(filter(str.isdigit, str1)) for str1 in generations]
+        maxgen = max(generationints)
+
+        filename = os.path.join('generations', 'sim_data_swarm_{}.pickle'.format(maxgen))
+        self.load(filename)
+
+        # have to reset the generation and generationints
+        generations = [dirname for dirname in os.listdir('generations') if dirname.startswith('gen')]
+        generationints = [int(filter(str.isdigit, str1)) for str1 in generations]
+        self.maxgen = max(generationints)
+        self.nextgen = self.maxgen + 1
+
+        # Print ourselves
+        self.PrintSwarm()
+        # Bias the first entry to the updated value
+        print " -- Particle Swarm Introducing Bias -- "
+        print " -- Input Parameters -- "
+        self.Sim.PrintSwarmCurrent()
+        print " -- Bias Swarm {} -- ".format(opts.bias)
+        self.Sim.BiasSwarm(opts.bias)
+        print " -- Output Parameters -- "
+        self.Sim.PrintSwarmCurrent()
+
+        # Write the new information
+        self.generation = self.nextgen
+        self.MakeDirectoryStruct()
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(prog='ChiParticleSwarm.py')
+
+    parser.add_argument('-P', '--procreate', nargs='+', type=str, metavar='DIRS',
+            help='Procreates based on most recent generation in DIRS list.')
+
+    parser.add_argument('-B', '--bias', nargs='+', type=float, metavar='DIRS',
+            help='Biases curreng generation by directly implementing the values')
+
+    opts = parser.parse_args()
+    return opts
 
 ### Main function to test stuff?
 if __name__ == "__main__":
-    #filename = sys.argv[1]
+    opts = parse_args()
     c = ChiParticleSwarm(None, None, 0)
-    #print "c.yml: {}".format(c.yml_files_dict)
-    #print "\n\n"
-    c.Procreate()
+    if opts.procreate:
+        c.Procreate()
+    elif opts.bias:
+        c.Bias(opts)

@@ -253,33 +253,40 @@ class ChiSim(object):
                 self.chiparams[ichi].values[idx] = self.chiparams[ichi].paramtype(newpos)
             self.fitness[idx] = float('nan')
 
+    # Bias the swarm variables at random
+    def BiasSwarm(self, bias):
+        # Pick a random particle
+        idx = random.randint(0, self.nparticles-1)
+        print "Chose random particle {}".format(idx)
+        for ichi in xrange(len(self.chiparams)):
+            self.chiparams[ichi].values[idx] = self.chiparams[ichi].paramtype(bias[ichi])
 
     def PrintSwarmCurrent(self):
-        str0 = "id  fitness    "
+        str0 = "id  fitness "
         for ichi in xrange(len(self.chiparams)):
-            str0 += "{:<10s}  {:>10s}  ".format(self.chiparams[ichi], "vel")
+            str0 += "{:>12s}{:>12s}".format(self.chiparams[ichi], "vel")
         print str0
         for idx in xrange(self.nparticles):
             str1 = "{0:<3d}  {1:>6.3f} ".format(idx, self.fitness[idx])
             for ichi in xrange(len(self.chiparams)):
-                str1 += " {0:10.3f}  ".format(self.chiparams[ichi].values[idx])
-                str1 += "  {0:10.3f}".format(self.velocity[idx][ichi])
+                str1 += "{0:>12.3f}".format(self.chiparams[ichi].values[idx])
+                str1 += "{0:>12.3f}".format(self.velocity[idx][ichi])
             print str1
 
     def PrintSwarmBest(self):
         str0 = "id  bestfit  "
         for ichi in xrange(len(self.chiparams)):
-            str0 += "{:>10s}".format(self.chiparams[ichi])
+            str0 += "{:>10s}    ".format(self.chiparams[ichi])
         print str0
         for idx in xrange(self.nparticles):
             str1 = "{0:<3d}  {1:>6.3f} ".format(idx, self.pbest[idx])
             for ichi in xrange(len(self.chiparams)):
-                str1 += " {0:10.3f}  ".format(self.pbestx[idx][ichi].values[self.pbestid[idx]])
+                str1 += " {0:10.3f}   ".format(self.pbestx[idx][ichi].values[self.pbestid[idx]])
             print str1
 
         str2 = "{0:<3s}  {1:>6.3f} ".format("g", self.gbest)
         for ichi in xrange(len(self.chiparams)):
-            str2 += " {0:10.3f}  ".format(self.gbestx[ichi].values[self.gbestid])
+            str2 += " {0:10.3f}   ".format(self.gbestx[ichi].values[self.gbestid])
         print str2
 
 
