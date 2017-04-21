@@ -7,70 +7,10 @@ import re
 
 from popen2 import popen2
 
-# #Depricated####################################################################
-# def create_job(simpath, statelist, job_name="ChiRun", walltime="1:00", processors = "nodes=1:ppn=1", queue="janus", allocation="UCB00000318", qmgr='slurm'):
-#     print "creating job for {0} with states: {1}".format(simpath,statelist)
-
-#     # Customize your options here
-#     job_name = simpath
-#     simpath = os.path.abspath(simpath)
-#     seedpath = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ChiRun.py')
-#     command = "{0} {1} {2}".format(sacrunpath, simpath, " ".join(statelist))
-
-#     errlog = os.path.join(simpath, 'sim.err')
-
-#     if qmgr == 'torque':
-#         # Open a pipe to the qsub command.
-#         output, input = popen2('qsub')
-#         job_string = """#!/bin/bash
-# #PBS -N {0}
-# #PBS -l walltime={1}
-# #PBS -l {2}
-# #PBS -o {3}
-# #PBS -e {4}
-# #PBS -A {5}
-# #PBS -q {6}
-# #PBS -V
-
-# cd $PBS_O_WORKDIR
-# {7}""".format(job_name, walltime, processors, log, errlog, allocation, queue, command)
-#     elif qmgr == 'slurm':
-#         # Open a pipe to the sbatch command.
-#         output, input = popen2('sbatch')
-#         if walltime.count(':') == 3:
-#             walltime = walltime.replace(':','-',1)
-#         nnodes = processors.split(':')[0].split('=')[1]
-#         nprocs = processors.split(':')[1].split('=')[1]
-#         job_string = """#!/bin/bash
-# #SBATCH --job-name={0}
-# #SBATCH -t {1}
-# #SBATCH -N {2}
-# #SBATCH -o {4}
-# #SBATCH -e {5}
-# #SBATCH -A {6}
-# #SBATCH --qos={7}
-
-# cd $SLURM_SUBMIT_DIR
-# {8}""".format(job_name, walltime, nnodes, nprocs, log, errlog, allocation, queue, command)
-#     else:
-#         print "Invalid qmgr: {0}".format(qmgr)
-#         return
-
-#     # Send job_string to qsub
-#     input.write(job_string)
-#     input.close()
-
-#     # Print your job and the response to the screen
-#     print job_string
-#     print output.read()
-# #Depricated####################################################################
-
 # Creates multithreaded processor jobs. 
-def create_multiprocessor_job(seedpaths, statelist, 
-        job_name="ChiRun", walltime="1:00", args_file = "args.yaml",
-        processors = "nodes=1:ppn=12", queue="janus", 
+def create_multiprocessor_job(seedpaths, statelist, job_name="ChiRun", walltime="1:00",
+        nnodes= "1", ntasks = "1", nprocs = "24", queue="janus-long", args_file="args.yaml",
         allocation="ucb-summit-smr", qmgr='slurm'):
-
     print "creating jobs for:"
     for i, sd_path in enumerate(seedpaths):
         print "sim: {0} with states: {1}".format(sd_path, ", ".join(statelist[i]))
@@ -79,95 +19,6 @@ def create_multiprocessor_job(seedpaths, statelist,
     # Customize your options here
     job_name = 'ChiRunBatch'
     seedlaunchpath = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ChiRun.py')
-    log = '/dev/null'
-    errlog = '/dev/null'
-    if qmgr == 'slurm':
-        # Open a pipe to the sbatch command.
-        output, input = popen2('sbatch')
-        if walltime.count(':') == 3:
-            walltime = walltime.replace(':','-',1)
-        nnodes = processors.split(':')[0].split('=')[1]
-        nprocs = processors.split(':')[1].split('=')[1]
-        job_string = """#!/bin/bash
-#SBATCH --job-name={0}
-#SBATCH -t {1}
-#SBATCH -N {2}
-#SBATCH -o {3}
-#SBATCH -e {4}
-#SBATCH -A {5}
-#SBATCH --qos={6}
-
-cd $SLURM_SUBMIT_DIR
-
-""".format(job_name, walltime, nnodes, log, errlog, allocation, queue)
-        for i, sd_path in enumerate(seedpaths):
-            sd_path = os.path.abspath(sd_path)
-            command = "{0} -d {1} -a {2} -s {3}".format(seedlaunchpath, sd_path, args_file, " ".join(statelist[i]))
-            log = os.path.join(sd_path, 'sim.log')
-            errlog = os.path.join(sd_path, 'sim.err')
-            
-            job_string = job_string + "srun -n1 -c{0} {1} 1> {2} 2> {3} &\n".format(nprocs,
-                                                                                    command,
-                                                                                    log,
-                                                                                    errlog)
-        job_string = job_string + "wait\n"
-        
-    elif qmgr == 'torque':
-        log = 'sim.log'
-        errlog = 'sim.err'
-        # Open a pipe to the qsub command.
-        output, input = popen2('qsub')
-        job_string = """#!/bin/bash
-#PBS -N {0}
-#PBS -l walltime={1}
-#PBS -l {2}
-#PBS -o {3}
-#PBS -e {4}
-#PBS -q {5}
-#PBS -V
-cd $PBS_O_WORKDIR
-
-""".format(job_name, walltime, processors, log, errlog, queue)
-        for i, sd_path in enumerate(seedpaths):
-            sd_path = os.path.abspath(sd_path)
-            command = "{0} -d {1} -a {2} -s {3}".format(seedlaunchpath, sd_path, args_file, " ".join(statelist[i]))
-            # command = "{0} {1} {2} {3} {4}".format(seedlaunchpath, sd_path, program, prefix, " ".join(statelist[i]))
-            log = os.path.join(sd_path, 'sim.log')
-            errlog = os.path.join(sd_path, 'sim.err')
-
-            job_string = job_string + command + " 1> {0} 2> {1}&\n".format(log, errlog);
-
-        job_string = job_string + "wait\n"
-        
-    else:
-        print "Invalid qmgr: {0}".format(qmgr)
-        return
-
-    # Send job_string to qsub
-    input.write(job_string)
-    input.close()
-
-    # Print your job and the response to the screen
-    print job_string
-    print output.read()
-
-# Create parallel job submissions to be run on the same node
-def create_parallel_job(seedpaths, statelist, job_name="ChiRun", walltime="1:00", 
-        processors = "nodes=1:ppn=1", queue="janus-long", args_file="args.yaml",
-        allocation="ucb-summit-smr", qmgr='slurm'):
-        # program="spb_dynamics", prefix="spindle_bd_mp"):
-    print "creating jobs for:"
-    for i, sd_path in enumerate(seedpaths):
-        print "sim: {0} with states: {1}".format(sd_path, ", ".join(statelist[i]))
-    print ""
-
-    # Customize your options here
-    job_name = 'ChiRunBatch'
-    seedlaunchpath = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ChiRun.py')
-    nnodes = processors.split(':')[0].split('=')[1]
-    nprocs = processors.split(':')[1].split('=')[1]
-    print "nnodes: " + str(nnodes)
-    print "nprocs: " + str(nprocs)
     log = '/dev/null'
     errlog = '/dev/null'
 
@@ -182,43 +33,44 @@ def create_parallel_job(seedpaths, statelist, job_name="ChiRun", walltime="1:00"
 #SBATCH -t {1}
 #SBATCH -N {2}
 #SBATCH --ntasks-per-node {3}
-#SBATCH -o {4}
-#SBATCH -e {5}
-#SBATCH -A {6}
-#SBATCH --qos={7}
-#SBATCH --partition={8}
+#SBATCH --cpus-per-task {4}
+#SBATCH -o {5}
+#SBATCH -e {6}
+#SBATCH -A {7}
+#SBATCH --qos={8}
+#SBATCH --partition={9}
 
 cd $SLURM_SUBMIT_DIR
 
 
-""".format(job_name, walltime, nnodes, nprocs, log, errlog, allocation, "condo", queue)
+""".format(job_name, walltime, nnodes, ntasks, nprocs, log, errlog, allocation, "condo", queue)
         for i, sd_path in enumerate(seedpaths):
             sd_path = os.path.abspath(sd_path)
-            # command = "{0} {1} {2} {3} {4}".format(seedlaunchpath, sd_path, program, prefix, " ".join(statelist[i]))
             command = "{0} -d {1} -a {2} -s {3}".format(seedlaunchpath, sd_path, args_file, " ".join(statelist[i]))
             log = os.path.join(sd_path, 'sim.log')
             errlog = os.path.join(sd_path, 'sim.err')
             job_string = job_string + "srun -n1 --exclusive {0} 1> {1} 2> {2} &\n".format(command, log, errlog)
         job_string = job_string + "wait\n"
-
-    # Torque submission code
+        
+# FIXME: Needs to be tested on pando before run
     elif qmgr == 'torque':
+        log = 'sim.log'
+        errlog = 'sim.err'
         # Open a pipe to the qsub command.
         output, input = popen2('qsub')
         job_string = """#!/bin/bash
 #PBS -N {0}
 #PBS -l walltime={1}
-#PBS -l {2}
-#PBS -o {3}
-#PBS -e {4}
-#PBS -q {5}
+#PBS -l nodes={2}:ppn={3}
+#PBS -o {4}
+#PBS -e {5}
+#PBS -q {6}
 #PBS -V
 cd $PBS_O_WORKDIR
 
-""".format(job_name, walltime, "nodes={0}:ppn={1}".format(nnodes, int(nprocs)), log, errlog, queue)
+""".format(job_name, walltime, nnodes, nprocs, log, errlog, queue)
         for i, sd_path in enumerate(seedpaths):
             sd_path = os.path.abspath(sd_path)
-            # command = "{0} {1} {2} {3} {4}".format(seedlaunchpath, sd_path, program, prefix, " ".join(statelist[i]))
             command = "{0} -d {1} -a {2} -s {3}".format(seedlaunchpath, sd_path, args_file, " ".join(statelist[i]))
             log = os.path.join(sd_path, 'sim.log')
             errlog = os.path.join(sd_path, 'sim.err')
@@ -227,7 +79,6 @@ cd $PBS_O_WORKDIR
 
         job_string = job_string + "wait\n"
         
-    # A valid scheduler was not specified
     else:
         print "Invalid qmgr: {0}".format(qmgr)
         return
@@ -239,6 +90,93 @@ cd $PBS_O_WORKDIR
     # Print your job and the response to the screen
     print job_string
     print output.read()
+
+# Create parallel job submissions to be run on the same node(Depricated)
+# def create_parallel_job(seedpaths, statelist, job_name="ChiRun", walltime="1:00", 
+#         nnodes="1", ntasks ="1", nprocs="24", queue="janus-long", args_file="args.yaml",
+#         allocation="ucb-summit-smr", qmgr='slurm'):
+#         # program="spb_dynamics", prefix="spindle_bd_mp"):
+#     print "creating jobs for:"
+#     for i, sd_path in enumerate(seedpaths):
+#         print "sim: {0} with states: {1}".format(sd_path, ", ".join(statelist[i]))
+#     print ""
+
+#     # Customize your options here
+#     job_name = 'ChiRunBatch'
+#     seedlaunchpath = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'ChiRun.py')
+#     print "nnodes: " + str(nnodes)
+#     print "nprocs: " + str(nprocs)
+#     log = '/dev/null'
+#     errlog = '/dev/null'
+
+#     # Slurm submission code
+#     if qmgr == 'slurm':
+#         # Open a pipe to the sbatch command.
+#         output, input = popen2('sbatch')
+#         if walltime.count(':') == 3:
+#             walltime = walltime.replace(':','-',1)
+#         job_string = """#!/bin/bash
+# #SBATCH --job-name={0}
+# #SBATCH -t {1}
+# #SBATCH -N {2}
+# #SBATCH --ntasks-per-node {3}
+# #SBATCH -o {4}
+# #SBATCH -e {5}
+# #SBATCH -A {6}
+# #SBATCH --qos={7}
+# #SBATCH --partition={8}
+
+# cd $SLURM_SUBMIT_DIR
+
+
+# """.format(job_name, walltime, nnodes, nprocs, log, errlog, allocation, "condo", queue)
+#         for i, sd_path in enumerate(seedpaths):
+#             sd_path = os.path.abspath(sd_path)
+#             # command = "{0} {1} {2} {3} {4}".format(seedlaunchpath, sd_path, program, prefix, " ".join(statelist[i]))
+#             command = "{0} -d {1} -a {2} -s {3}".format(seedlaunchpath, sd_path, args_file, " ".join(statelist[i]))
+#             log = os.path.join(sd_path, 'sim.log')
+#             errlog = os.path.join(sd_path, 'sim.err')
+#             job_string = job_string + "srun -n1 --exclusive {0} 1> {1} 2> {2} &\n".format(command, log, errlog)
+#         job_string = job_string + "wait\n"
+
+#     # Torque submission code
+#     elif qmgr == 'torque':
+#         # Open a pipe to the qsub command.
+#         output, input = popen2('qsub')
+#         job_string = """#!/bin/bash
+# #PBS -N {0}
+# #PBS -l walltime={1}
+# #PBS -l {2}
+# #PBS -o {3}
+# #PBS -e {4}
+# #PBS -q {5}
+# #PBS -V
+# cd $PBS_O_WORKDIR
+
+# """.format(job_name, walltime, "nodes={0}:ppn={1}".format(nnodes, int(nprocs)), log, errlog, queue)
+#         for i, sd_path in enumerate(seedpaths):
+#             sd_path = os.path.abspath(sd_path)
+#             # command = "{0} {1} {2} {3} {4}".format(seedlaunchpath, sd_path, program, prefix, " ".join(statelist[i]))
+#             command = "{0} -d {1} -a {2} -s {3}".format(seedlaunchpath, sd_path, args_file, " ".join(statelist[i]))
+#             log = os.path.join(sd_path, 'sim.log')
+#             errlog = os.path.join(sd_path, 'sim.err')
+
+#             job_string = job_string + command + " 1> {0} 2> {1}&\n".format(log, errlog);
+
+#         job_string = job_string + "wait\n"
+        
+#     # A valid scheduler was not specified
+#     else:
+#         print "Invalid qmgr: {0}".format(qmgr)
+#         return
+
+#     # Send job_string to qsub
+#     input.write(job_string)
+#     input.close()
+
+#     # Print your job and the response to the screen
+#     print job_string
+#     print output.read()
 
 
 def get_state(path):
@@ -342,66 +280,49 @@ def ChiLaunch(simdirs, opts=''):
     allocation = raw_input('Input allocation (default ucb-summit-smr): ').strip()
     if allocation == '': allocation = "ucb-summit-smr"
 
-    mp = False if query_yes_no("Single processor job?") else True
+    # mp = False if query_yes_no("Single processor job?") else True
 
     nodes = raw_input('Input number of nodes (default 1): ').strip()
     if nodes == '': nodes = "1"
 
+    ntasks = raw_input('Input number of tasks per node (default 1): ').strip()
+    if ntasks == '': ntasks = "1"
+
     if scheduler == "torque":
-        ppn = raw_input('Input number of processes per node (default 16): ').strip()
-        if ppn == '': ppn = "16"
+        nprocs = raw_input('Input number of processors per task (default 16): ').strip()
+        if nprocs == '': nprocs = "16"
         queue = raw_input('Input job queue (default short2gb): ').strip()
         if queue == '': queue = "short2gb"
 
     elif scheduler == "slurm":
+        nprocs = raw_input('Input number of processors per task (default 24): ').strip()
+        if nprocs == '': nprocs = "24"
         queue = raw_input('Input job queue (default shas): ').strip()
         if queue == '': queue = "shas"
-        ppn = raw_input('Input number of processes per node (default 24): ').strip()
-        if ppn == '': ppn = "24"
-
-    # program = ''
-    # prefix = ''
-    # if mp:
-    #     program = raw_input('Input program you would like to run (default crosslink_sphero_bd_mp): ').strip()
-    #     if program == '': program = "crosslink_sphero_bd_mp"
-    #     prefix = raw_input('Input prefix to analysis files (default crosslink_sphero_bd_mp): ').strip()
-    #     if prefix == '': prefix = "crosslink_sphero_bd_mp"
-    # elif not mp:
-    #     program = raw_input('Input program you would like to run (default spindle_bd_mp): ').strip()
-    #     if program == '': program = "spindle_bd_mp"
-    #     prefix = raw_input('Input prefix to analysis files (default spindle_bd_mp): ').strip()
-    #     if prefix == '': prefix = "spindle_bd_mp"
 
     if not query_yes_no("Generating job for states ({0}) with walltime ({1}) on queue ({2}) and allocation ({3}) with scheduler({4}).".format(" ".join(runstates), walltime, queue, allocation, scheduler)):
         return 1
 
-    processors = "nodes={0}:ppn={1}".format(nodes,ppn)
+    # processors = "nodes={0}:ppn={1}".format(nodes,ppn)
     
-    if not mp:
-        for i_block in range(0, int(n_jobs/int(ppn))+1):
-            # Find the index range of the seeds that you are running
-            starti = i_block * int(ppn)
-            endi = starti + int(ppn)
-            # If end index is greater the number of seeds make end the last seed run
-            if endi > len(seeds):
-                endi = len(seeds)
-            if endi > starti:
-                create_parallel_job(seeds[starti:endi], states[starti:endi], walltime=walltime, allocation=allocation, queue=queue, qmgr=scheduler, processors=processors)
-            # Torque scheduler has a 10 second update time 
-            # make sure you wait before adding another
-            import time
-            if scheduler == "torque":
-                time.sleep(10)
-            else:
-                time.sleep(.1)
-    else:
-        for i_block in range(0, n_jobs):
-            create_multiprocessor_job([seeds[i_block]], [states[i_block]], walltime=walltime, allocation=allocation, queue=queue, qmgr=scheduler, processors=processors)
-            import time
-            if scheduler == "torque":
-                time.sleep(10)
-            else:
-                time.sleep(.1)
+    for i_block in range(0, int(n_jobs/int(ntasks))+1):
+        # Find the index range of the seeds that you are running
+        starti = i_block * int(ntasks)
+        endi = starti + int(ntasks)
+        # If end index is greater the number of seeds make end the last seed run
+        if endi > len(seeds):
+            endi = len(seeds)
+        if endi > starti:
+            create_multiprocessor_job(seeds[starti:endi], states[starti:endi], walltime=walltime, 
+                    nnodes=nodes, ntasks=ntasks, nprocs=nprocs, queue=queue, 
+                    allocation=allocation, qmgr=scheduler)
+        # Torque scheduler has a 10 second update time 
+        # make sure you wait before adding another
+        import time
+        if scheduler == "torque":
+            time.sleep(10)
+        else:
+            time.sleep(.1)
 
 if __name__ == '__main__':
     if len(sys.argv) > 1:
