@@ -22,8 +22,6 @@ Input: To view type Chi.py -h
 Output:
 '''
 
-
-
 def parse_args():
     # TODO Figure out how to make a choose functionality
     parser = argparse.ArgumentParser(prog='Chi.py')
@@ -96,7 +94,6 @@ class ChiMain(object):
             self.opts.states = yd.keys()
 
     def ProgOpts(self):
-        # Read all the file names given in options and combine into main yaml dict
         if self.opts.launch:
             ChiLaunch(simdirs=self.opts.launch, opts=self.opts)
             
