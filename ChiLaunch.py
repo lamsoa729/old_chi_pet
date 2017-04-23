@@ -232,6 +232,11 @@ def ChiLaunch(simdirs, opts=''):
     # List of all the seeds that will be run
     seeddirs = []
     
+    if opts and opts.args_file:
+        args_file = opts.args_file
+    else:
+        args_file = "args.yaml"
+    
     for simd in simdirs:
         print "Searching for path {0}".format(simd)
 
@@ -315,7 +320,7 @@ def ChiLaunch(simdirs, opts=''):
         if endi > starti:
             create_multiprocessor_job(seeds[starti:endi], states[starti:endi], walltime=walltime, 
                     nnodes=nodes, ntasks=ntasks, nprocs=nprocs, queue=queue, 
-                    allocation=allocation, qmgr=scheduler)
+                    allocation=allocation, qmgr=scheduler, args_file=args_file)
         # Torque scheduler has a 10 second update time 
         # make sure you wait before adding another
         import time
