@@ -116,6 +116,8 @@ class ChiMain(object):
         elif self.opts.prep:
             seed_lst = find_seed_dirs(self.opts.workdir)
             for sd_dir in seed_lst:
+                if self.opts.args_file: 
+                    shutil.copy(self.opts.args_file, sd_dir)
                 for s in self.opts.states:
                     touch(os.path.join(sd_dir, 'sim.{}'.format(s)))
 
