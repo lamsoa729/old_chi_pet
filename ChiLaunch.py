@@ -9,8 +9,8 @@ from popen2 import popen2
 
 # Creates multithreaded processor jobs. 
 def create_multiprocessor_job(seedpaths, statelist, job_name="ChiRun", walltime="1:00",
-        nnodes= "1", ntasks = "1", nprocs = "24", queue="janus-long", args_file="args.yaml",
-        allocation="ucb-summit-smr", qmgr='slurm'):
+        nnodes= "1", ntasks = "1", nprocs = "24", queue="shas", args_file="args.yaml",
+        qos="condo", allocation="ucb-summit-smr", qmgr='slurm'):
     print "creating jobs for:"
     for i, sd_path in enumerate(seedpaths):
         print "sim: {0} with states: {1}".format(sd_path, ", ".join(statelist[i]))
@@ -43,7 +43,7 @@ def create_multiprocessor_job(seedpaths, statelist, job_name="ChiRun", walltime=
 cd $SLURM_SUBMIT_DIR
 
 
-""".format(job_name, walltime, nnodes, ntasks, nprocs, log, errlog, allocation, "condo", queue)
+""".format(job_name, walltime, nnodes, ntasks, nprocs, log, errlog, allocation, qos, queue)
         for i, sd_path in enumerate(seedpaths):
             sd_path = os.path.abspath(sd_path)
             command = "{0} -d {1} -a {2} -s {3}".format(seedlaunchpath, sd_path, args_file, " ".join(statelist[i]))
@@ -276,22 +276,25 @@ def ChiLaunch(simdirs, opts=''):
     if n_jobs == '': n_jobs = len(seeds)
     else: n_jobs = int(n_jobs)
 
+    allocation = raw_input('Input allocation (default ucb-summit-smr): ').strip()
+    if allocation == '': allocation = "ucb-summit-smr"
+
+    qos = raw_input('Input qos aka quality of service (default condo): ').strip()
+    if qos == '': qos = "condo"
+
     scheduler = raw_input('Input scheduler (default slurm): ').strip()
     if scheduler == '': scheduler = "slurm"
 
     walltime = raw_input('Input walltime (dd:hh:mm:ss), (default 23:59:00): ' ).strip()
     if walltime == '': walltime = "23:59:00"
 
-    allocation = raw_input('Input allocation (default ucb-summit-smr): ').strip()
-    if allocation == '': allocation = "ucb-summit-smr"
-
     # mp = False if query_yes_no("Single processor job?") else True
 
     nodes = raw_input('Input number of nodes (default 1): ').strip()
     if nodes == '': nodes = "1"
 
-    ntasks = raw_input('Input number of tasks per node (default 1): ').strip()
-    if ntasks == '': ntasks = "1"
+    ntasks = raw_input('Input number of tasks per node (default 24): ').strip()
+    if ntasks == '': ntasks = "24"
 
     if scheduler == "torque":
         nprocs = raw_input('Input number of processors per task (default 16): ').strip()
@@ -300,12 +303,12 @@ def ChiLaunch(simdirs, opts=''):
         if queue == '': queue = "short2gb"
 
     elif scheduler == "slurm":
-        nprocs = raw_input('Input number of processors per task (default 24): ').strip()
-        if nprocs == '': nprocs = "24"
+        nprocs = raw_input('Input number of processors per task (default 1): ').strip()
+        if nprocs == '': nprocs = "1"
         queue = raw_input('Input job queue (default shas): ').strip()
         if queue == '': queue = "shas"
 
-    if not query_yes_no("Generating job for states ({0}) with walltime ({1}) on queue ({2}) and allocation ({3}) with scheduler({4}).".format(" ".join(runstates), walltime, queue, allocation, scheduler)):
+    if not query_yes_no("Generating job for states ({0}) with walltime ({1}) on queue ({2}) in allocation ({3}) and QOS ({4}) with scheduler({5}).".format(" ".join(runstates), walltime, queue, allocation, qos, scheduler)):
         return 1
 
     # processors = "nodes={0}:ppn={1}".format(nodes,ppn)
@@ -319,8 +322,8 @@ def ChiLaunch(simdirs, opts=''):
             endi = len(seeds)
         if endi > starti:
             create_multiprocessor_job(seeds[starti:endi], states[starti:endi], walltime=walltime, 
-                    nnodes=nodes, ntasks=ntasks, nprocs=nprocs, queue=queue, 
-                    allocation=allocation, qmgr=scheduler, args_file=args_file)
+                    nnodes=nodes, ntasks=ntasks, nprocs=nprocs, queue=queue, qos=qos,
+                    allocation=allocation, qmgr=scheduler)
         # Torque scheduler has a 10 second update time 
         # make sure you wait before adding another
         import time
