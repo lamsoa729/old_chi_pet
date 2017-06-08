@@ -276,19 +276,26 @@ def ChiLaunch(simdirs, opts=''):
     if n_jobs == '': n_jobs = len(seeds)
     else: n_jobs = int(n_jobs)
 
-    allocation = raw_input('Input allocation (default ucb-summit-smr): ').strip()
-    if allocation == '': allocation = "ucb-summit-smr"
-
-    qos = raw_input('Input qos aka quality of service (default condo): ').strip()
-    if qos == '': qos = "condo"
-
     scheduler = raw_input('Input scheduler (default slurm): ').strip()
-    if scheduler == '': scheduler = "slurm"
+    if scheduler == '' or scheduler == 'slurm': scheduler, queue, nprocs = ("slurm", "shas", "1")
+    #FIXME doesn't work for torque at the moment but shouldn't require too much to fix up
+    elif scheduler == 'torque': queue, nprocs = ("short2gb", "16") 
+    else: 
+        print "Chi-pet is not programmed for scheduler '{}'.".format(scheduler)
+        sys.exit(1)
+
+    allocation = raw_input('Input allocation (default ucb-summit-smr): ').strip()
+    if allocation == '': allocation, qos = ("ucb-summit-smr", "condo")
+    else: qos = "normal"
+
+    qos_switch = raw_input('Input qos aka quality of service (default {}): '.format(qos)).strip()
+    if qos_switch != '': qos = qos_switch
+
+    queue_switch = raw_input('Input job queue (default {}): '.format(queue)).strip()
+    if queue_switch != '': queue = queue_switch
 
     walltime = raw_input('Input walltime (dd:hh:mm:ss), (default 23:59:00): ' ).strip()
     if walltime == '': walltime = "23:59:00"
-
-    # mp = False if query_yes_no("Single processor job?") else True
 
     nodes = raw_input('Input number of nodes (default 1): ').strip()
     if nodes == '': nodes = "1"
@@ -296,19 +303,10 @@ def ChiLaunch(simdirs, opts=''):
     ntasks = raw_input('Input number of tasks per node (default 24): ').strip()
     if ntasks == '': ntasks = "24"
 
-    if scheduler == "torque":
-        nprocs = raw_input('Input number of processors per task (default 16): ').strip()
-        if nprocs == '': nprocs = "16"
-        queue = raw_input('Input job queue (default short2gb): ').strip()
-        if queue == '': queue = "short2gb"
+    nprocs_switch = raw_input('Input number of processors per task (default {}): '.format(nprocs)).strip() 
+    if nprocs_switch != '': nprocs = nprocs_switch
 
-    elif scheduler == "slurm":
-        nprocs = raw_input('Input number of processors per task (default 1): ').strip()
-        if nprocs == '': nprocs = "1"
-        queue = raw_input('Input job queue (default shas): ').strip()
-        if queue == '': queue = "shas"
-
-    if not query_yes_no("Generating job for states ({0}) with walltime ({1}) on queue ({2}) in allocation ({3}) and QOS ({4}) with scheduler({5}).".format(" ".join(runstates), walltime, queue, allocation, qos, scheduler)):
+    if not query_yes_no("Generating job for states ({0}) with walltime ({1}) on queue ({2}) in allocation ({3}) and QOS ({4}) with scheduler ({5}).".format(" ".join(runstates), walltime, queue, allocation, qos, scheduler)):
         return 1
 
     # processors = "nodes={0}:ppn={1}".format(nodes,ppn)
