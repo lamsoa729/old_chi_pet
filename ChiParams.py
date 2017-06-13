@@ -135,10 +135,21 @@ class ChiSim(object):
         for cparam in self.chiparams:
             cparam.UpdateValues()
 
-    def UpdateShotgunParamValues(self, nvars):
-        for i in range(nvars):
-            for cparam in self.chiparams:
-                cparam.AddValue()
+    def UpdateShotgunParamValues(self):
+        for cparam in self.chiparams:
+            if cparam.values:
+                #TODO If two param value lists are different, 
+                #     choose the smaller one.
+                if self.opts.n != cparam.GetNValues():
+                    print "## Number of values of in {0}({1}) \
+                    does not match nvars given({2}). Setting nvars to {1}.".format(
+                            cparam.format_str.format(0), cparam.GetNValues(),
+                            self.opts.n)
+                    self.opts.n = cparam.GetNValues()
+                continue
+            else:
+                for i in range(self.opts.n):
+                    cparam.AddValue()
 
     def MakeSeeds(self):
         sd_obj = find_str_values(self.yml_file_dict, 

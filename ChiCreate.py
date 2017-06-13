@@ -58,7 +58,7 @@ class ChiCreate(object):
         if self.opts.create:
             self.Sim.UpdateParamValues()
         elif self.opts.shotgun:
-            self.Sim.UpdateShotgunParamValues(self.opts.n)
+            self.Sim.UpdateShotgunParamValues()
         elif self.opts.particleswarmcreate: # Duplicates the behavior of the shotgun approach
             self.Sim.UpdateShotgunParamValues(self.opts.n)
 
