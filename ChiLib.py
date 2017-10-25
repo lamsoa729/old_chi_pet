@@ -106,9 +106,17 @@ def find_seed_dirs(path):
         if is_seed.search(current):
             yield  os.path.abspath(current)
 
-def touch(filename):
-    with open(filename, 'a') as f:
-        f.close()
+def touch(fname, times=None):
+    """ Replicates the UNIX touch command """
+    with open(fname, 'a'):
+        os.utime(fname, times)
+
+def find_dirs(path):
+    """ Find all the child directories one level deep and return a list 
+        of the absolute paths.
+    """
+    return [os.path.abspath(x) for x in (next(os.walk(path))[1])]
+    
 
 ##########################################
 if __name__ == "__main__":
