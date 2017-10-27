@@ -113,9 +113,9 @@ def touch(fname, times=None):
 
 def find_dirs(path):
     """ Find all the child directories one level deep and return a list 
-        of the absolute paths.
+        of their paths from the path variable.
     """
-    return [os.path.abspath(x) for x in (next(os.walk(path))[1])]
+    return [os.path.join(path, x) for x in (next(os.walk(path))[1])]
     
 
 ##########################################
