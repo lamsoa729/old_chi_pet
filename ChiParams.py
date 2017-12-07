@@ -201,15 +201,42 @@ class ChiSim(object):
         #print "velocity: {}".format(self.velocity)
 
     # Update the fitness of myself for all the subsims
-    def UpdateFitness(self):
+    def UpdateFitness(self, sim_dir):
         print " -- Simulations Checking and Updating Fitness -- "
-        # XXX FIXME spoof this for now
-        print " WARNING ERROR Using fake fitness function!!!!!"
+        ## XXX FIXME spoof this for now
+        #print " WARNING ERROR Using fake fitness function!!!!!"
+        #for idx in xrange(self.nparticles):
+        #    x = self.chiparams[0].values[idx]
+        #    y = self.chiparams[1].values[idx]
+        #    z = self.chiparams[2].values[idx]
+        #    self.fitness[idx] = self.FakeGaussianSignal(x, 184, 20) * self.FakeGaussianSignal(y, 80, 20) * self.FakeGaussianSignal(z, 110, 40)
+
+        # Look for the fitness file in the data directory for each particle
         for idx in xrange(self.nparticles):
-            x = self.chiparams[0].values[idx]
-            y = self.chiparams[1].values[idx]
-            z = self.chiparams[2].values[idx]
-            self.fitness[idx] = self.FakeGaussianSignal(x, 184, 20) * self.FakeGaussianSignal(y, 80, 20) * self.FakeGaussianSignal(z, 110, 40)
+            print "Sim {} looking for fitness.yaml".format(idx)
+            # Rebuild the name of the sim
+            sim_name = ''
+            for ichi in xrange(len(self.chiparams)):
+                p = self.chiparams[ichi]
+                sim_name += p.format(p[idx]) + "_"
+
+            sim_name = sim_name[:-1]
+            sim_full_path = os.path.join(sim_dir, sim_name)
+
+            # Check that the data directory and fitness file exist...
+            data_file_path = os.path.join(sim_full_path, 'data', 'fitness_final.yaml')
+            with open(data_file_path, 'r') as stream:
+                fitness_yaml = yaml.load(stream)
+                # Compile fitness information
+                em_fitness = 0.0
+                length_fitness = 0.0
+                chromosome_fitness = 0.0
+                em_fitness = (fitness_yaml['short'] + fitness_yaml['med'] + fitness_yaml['long'])/3.
+                length_fitness = fitness_yaml['length_fitness']
+                if 'chromosome_seconds' in fitness_yaml:
+                    chromosome_fitness = fitness_yaml['chromosome_seconds']
+                total_fitness = em_fitness + length_fitness + chromosome_fitness
+                self.fitness[idx] = total_fitness
 
     # Update the best position of the swarm variables
     def UpdateBest(self):

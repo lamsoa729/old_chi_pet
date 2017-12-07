@@ -90,6 +90,15 @@ class ChiParticleSwarm(ChiCreate):
     def CreateParticleSwarmData(self):
         self.Sim.CreateParticleSwarm()
 
+    def GenerateFitnessInformation(self):
+        # We have to look up the fitness information based on the driectory names and correlate this
+        # with the proper sim, otherwise, is useless
+        sim_dir_name = "generations/gen{0}".format(self.generation)
+        sim_dir = os.path.join(self.opts.workdir, sim_dir_name)
+
+        # Always a shotgun type creation of directory struct
+        self.Sim.UpdateFitness(sim_dir)
+
     # Procreate Functionality
     def Procreate(self):
         # Load self
@@ -108,7 +117,8 @@ class ChiParticleSwarm(ChiCreate):
 
         self.PrintSwarm()
         print " -- Particle Swarm Procreating from max generation {}".format(self.maxgen)
-        self.Sim.UpdateFitness()
+        self.GenerateFitnessInformation()
+        #self.Sim.UpdateFitness()
         print " -- Input Parameters -- "
         self.Sim.PrintSwarmCurrent()
         print " -- Best Parameters -- "
