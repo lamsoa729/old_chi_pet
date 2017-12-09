@@ -55,8 +55,11 @@ def parse_args():
             help='Creates seed directories with simulation structure that can be launched with ChiLaunch.py.')
     parser.add_argument('-r','--replace', default=False, action='store_true',
             help='Replace simulation file instead of throwing and error if file already exists.(Used with --create option only)')
+    parser.add_argument('-ny', '--non_yaml', nargs='+', default=[], type=str,
+            help='Will add non-yaml files to seed directories when creating directory structure. (Used with --create or --shotgun option only)')
+
     parser.add_argument('--fluid_config', default='',
-            help='Will add fluid.config file to seed directories when creating directory structure. Used with bulk simulations when all fluids start with the same configuration. (Used with --create option only)')
+            help='(DEPRICATED: use --non_yaml or -ny instead) Will add fluid.config file to seed directories when creating directory structure. Used with bulk simulations when all fluids start with the same configuration. (Used with --create or --shotgun option only)')
 
     parser.add_argument('-S', '--shotgun', metavar='PARAM_FILE', 
             nargs='+', type=str,
