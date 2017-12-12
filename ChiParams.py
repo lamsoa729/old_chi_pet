@@ -223,6 +223,9 @@ class ChiSim(object):
             sim_name = sim_name[:-1]
             sim_full_path = os.path.join(sim_dir, sim_name)
 
+            # Generate the sim fitness data!
+            status = call(['SpindleAnalysis', '--sim', '-R', '-F', '-d', sim_full_path])
+
             # Check that the data directory and fitness file exist...
             data_file_path = os.path.join(sim_full_path, 'data', 'fitness_final.yaml')
             with open(data_file_path, 'r') as stream:
