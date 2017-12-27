@@ -1,45 +1,70 @@
 chromosomes:
   properties:
-    kc_diameter: 8.0
-    kc_spb_max_distance: 10.0
-    kc_spb_min_distance: 9.0
-    chromatin_rest_length: 0.0
-    chromatin_spring: 3.345
-    chromatin_torsion_spring: 12.0
-    mt_repulsion_spring: 20.0
-    Ndc80_number_complexes: 3
-    Ndc80_location_radius: 1.5
-    Ndc80_exclusion_radius: 0.2
-    Ndc80_spring: 45.29
-    Ndc80_rest_length: 2.16 #54nm
-    Ndc80_barrier_weight: 0.0
-    Ndc80_concentration: 20.0
-    Ndc80_on_rate: 0.001958
-    Ndc80_diffusion: 0.379
+    nkmc: 10 # kMC every 10 steps
+    filename: chromosomes.posit
+    write_posit: true
+    kc_triangulation_verticies: 4
+    kc_triangulation_type: rectangle
+    kc_diameter: 8.0 # 200 nm of size for the diffusion diameter
+    kc_dimensions: [6.0, 2.0] # along chromatid, perpendicular to chromatid
+    use_kc_potential: 1
+    kc_spb_max_distance: 15.0
+    kc_spb_min_distance: 10.0
+    chromatin_rest_length: 4.0
+    chromatin_spring: 20.0
+    chromatin_torsion_spring: 213.0
+    chromatid_kv_spring: 213.0
+    chromatid_length: 8.0 # length of the chromatid in the vhat direction
+    chromatid_diameter: 3.0 # diameter of the chromatid spherocylinder
+    chromatid_kc_offset: 1.5 # chromatid kinetochore offset for distance behind kinetochore to place
+    chromatid_mt_repulsion: 0.25
+    chromatid_mt_fc_distance: 1.0
+    chromatid_mt_fc_factor: 0.0828 # Matches fc from wall potential
+    AuroraB: 1
+    AuroraB_factor: ChiParam(format_str = "ABK{}", exec_str = "UniformRandom(bounds=[1.0, 100.0])")
+    Dam1: 1
+    Dam1_catastrophe_factor: ChiParam(format_str = "dam{}", exec_str = "UniformRandom(bounds=[0.0,2.0])")
+    AF_number_complexes: 3
+    AF_exclusion_radius: 1.6 # 40nm separation
+    AF_spring: ChiParam(format_str = "AFkm{}", exec_str = "UniformRandom(bounds=[6.1,45.29])")
+    progressive_locking: 1
+    AF_kr:
+    - 1.0
+    - 10.0
+    - 100.0
+    - 100.0
+    AF_rest_length: 2.16 #54nm 
+    AF_xc_assemble: ChiParam(format_str = "xca{}", exec_str = "UniformRandom(bounds=[0.0, 0.2])")
+    AF_xc_disemble: ChiParam(format_str = "xcd{}", exec_str = "UniformRandom(bounds=[-0.2, 0.0])")
+    AF_xc_side: ChiParam(format_str = "xcs{}", exec_str = "UniformRandom(bounds=[-0.2, 0.2])")
+    AF_characteristic_angular_factor: ChiParam(format_str = "ChiC{}", exec_str = "UniformRandom(bounds=[0.0,0.1])")
+    AF_tip_concentration: 1000.0
+    AF_tip_on_rate_assemble: 4.0e-6
+    AF_tip_on_rate_disemble: 0.0012
+    AF_tip_diffusion: 0.07
+    AF_side_concentration: 10.0
+    AF_side_on_rate: 0.0012
+    AF_side_diffusion: 1.03 # Chip Asbury
+    AF_tip_distance: 1.0 # 25nm
+    AF_tip_crowd: true
+    AF_stabilization_length: 1.0 #25 nm of tip, same as enhancement
+    AF_stabilization_force_vg: 51.2 #taken from MCoC paper Gergely
+    AF_stabilization_force_vs: -18.3 #taken from MBoC paper Gergely
+    AF_stabilization_force_fc: -14.0 #Akiyoshi exponent
+    AF_stabilization_force_fr: 39.0 #Akiyoshi exponent
+    AF_vmax: 0.72 # Maximum velocity of polymerization of MTs for numerical stability, 30 microns/min
+    translational_drag: 15.0 # Match diffusion to Kalinina of 5.9e-4 um^2/sec -> 30sigma^2/s roughly
+    rotational_drag: 1125.0 # (8/3)*(gt/2)^3 (gt = last number)
+    color_chromatid: [0.0, 0.0, 255.0, 1.0]
+    AF_velocity: 0.071
+    AF_stall_force: 30.2 #matches Cut7
   chromosome:
-    - insertion_type: spb
-      color: [1.0, 0.0, 1.0, 0.8]
-    #- insertion_type: spb
-    #  color: [1.0, 0.0, 1.0, 0.8]
-    #- insertion_type: spb
-    #  color: [1.0, 0.0, 1.0, 0.8]
-    #- insertion_type: xyz #chromatin test
-    #  color: [1.0, 0.0, 1.0, 0.8]
-    #  x0: [0.0, 0.0, 0.0]
-    #  u0: [1.0, 0.0, 0.0]
-    #  offset: [1.0, 0.0, 0.0]
-    #- insertion_type: xyz #wca test
-    #  color: [1.0, 0.0, 1.0, 0.8]
-    #  x0: [0.0, 0.0, 51.0]
-    #  u0: [1.0, 0.0, 0.0]
-    #  offset: [0.0, 0.0, 0.0]
-    #- insertion_type: xyz #mt recoil test
-    #  color: [1.0, 0.0, 1.0, 0.8]
-    #  x0: [2.0, 0.0, 0.0]
-    #  u0: [1.0, 0.0, 0.0]
-    #  offset: [0.0, 0.0, 0.0]
-    #- insertion_type: xyz #site creation test
-    #  color: [1.0, 0.0, 1.0, 0.8]
-    #  x0: [4.0, 0.0, 0.0]
-    #  u0: [1.0, 0.0, 0.0]
-    #  offset: [0.0, 0.0, 0.0]
+    - insertion_type: spblink
+      color: [0.0, 1.0, 1.0, 1.0] # Cyan
+      color_af: [0.0, 1.0, 1.0, 1.0]
+    - insertion_type: spblink
+      color: [1.0, 1.0, 0.0, 1.0] # Yellow
+      color_af: [1.0, 1.0, 0.0, 1.0]
+    - insertion_type: spblink
+      color: [1.0, 0.0, 1.0, 1.0] # Magenta
+      color_af: [1.0, 0.0, 1.0, 1.0]

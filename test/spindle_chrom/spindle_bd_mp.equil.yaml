@@ -1,27 +1,4 @@
-config_file : spindle_bd_mp.config.yaml
-crosslink_file : spindle_bd_mp.crosslink.yaml
-chromosome_config: spindle_bd_mp.chromosome.yaml
-data_analysis_file: spindle_bd_mp.data.yaml
-n_posit : 1000
-n_thermo : 1000
-n_graph : 20000
-n_spindle : 10000
-graph_flag : 1
-grab_flag : 1
-seed : ChiSeed(bounds=[0,6])
-n_steps : 160000000
-f_grow_to_pause: 0.0
-f_grow_to_shrink: 0.00237458231883
-f_pause_to_grow: 0.02
-f_pause_to_shrink: 0.0
-f_shrink_to_grow: 0.00009315333333
-f_shrink_to_pause: 0.0
-v_poly: 0.09730666667
-v_depoly: 0.159
-min_length : 2.0
-max_length : 400.0
-skin : 10.0
-force_induced_catastrophe_flag : 1
-wall_potential_flag: 1
-force_poly_flag: 0
-spb_diffusion: 0.0256
+n_posit : 100000
+n_thermo : 100000
+n_graph : 100000
+n_steps: 160000000

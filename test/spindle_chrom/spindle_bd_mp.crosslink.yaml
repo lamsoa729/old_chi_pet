@@ -1,8 +1,10 @@
 attachment-model: two-stage-explicit
+write_posit: true
+force_dependent: true
 
 crosslink:
 #plus end motor (kinesin-5)
-  - reservoir : 184
+  - reservoir : ChiParam(format_str = "cutN{0:d}", exec_str = "UniformRandom(bounds=[0,500])", paramtype=int)
     concentration_1 : 30190
     concentration_2 : [10.0, 10.0]
     spring_constant : 45.29
@@ -11,11 +13,11 @@ crosslink:
     velocity_antipolar_scale : -0.08
     on_rate_1 : 0.003916
     on_rate_2 : 0.001958
-    equilibrium_length : 3.12
+    equilibrium_length : 2.12
     stall_force : 30.2
     polar_affinity : 1.0
     stall_type : parallel
-    barrier_weight : 0.258222586044
+    characteristic_length: ChiParam(format_str = "cutNxc{}", exec_str = "UniformRandom(bounds=[0.0,0.2])")
     stabilization_scaling_vg : 1.53952906623
     stabilization_scaling_vs : 0.0944027747085
     stabilization_scaling_fc : 0.0981865601251
@@ -28,18 +30,18 @@ crosslink:
     end_pause : [0, 0]
  
 #minus end motor (kinesin-14)
-  - reservoir : 80
+  - reservoir : ChiParam(format_str = "klpN{0:d}", exec_str = "UniformRandom(bounds=[0,500])", paramtype=int)
     concentration_1 : 8302.5
     concentration_2 : [2.5, 2.5]
     spring_constant : 45.29
     velocity : [-0.0712, 0.0]
     on_rate_1 : [0.003916, 0.00356]
     on_rate_2 : [0.001958, 0.00177]
-    equilibrium_length : 3.12
+    equilibrium_length : 2.12
     stall_force : 30.2
     polar_affinity : 1.0
     stall_type : parallel
-    barrier_weight : 0.00272387388574
+    characteristic_length: ChiParam(format_str = "pklNxc{}", exec_str = "UniformRandom(bounds=[0.0,0.2])")
     stabilization_scaling_vg : 1.53952906623
     stabilization_scaling_vs : 0.0944027747085
     stabilization_scaling_fc : 0.0981865601251
@@ -54,21 +56,20 @@ crosslink:
     end_pause : [0, 0]
  
 #static xlinker (ase1)
-  - reservoir : 110
+  - reservoir : ChiParam(format_str = "aseN{0:d}", exec_str = "UniformRandom(bounds=[0,500])", paramtype=int)
     concentration_1 : 33210
     concentration_2 : 10.0
     spring_constant : 31.25
     velocity : 0.0
     on_rate_1 : 0.00356
     on_rate_2 : 0.00177
-    equilibrium_length : 3.12
+    equilibrium_length : 2.12
     stall_force : 30.2
     polar_affinity : 0.33333333
     stall_type : parallel
-    barrier_weight : 0.0162633055374 
+    characteristic_length: ChiParam(format_str = "aseNxc{}", exec_str = "UniformRandom(bounds=[0.0,0.2])")
     stabilization_scaling_vg : 1.53952906623
-    stabilization_scaling_vs : ChiParam(format_str="svs{0:4f}", exec_str="LinearSlice(bounds=[0.0, 1.0], n_vars=10)")
-    #stabilization_scaling_vs : 0.0944027747085
+    stabilization_scaling_vs : 0.0944027747085
     stabilization_scaling_fc : 0.0981865601251
     stabilization_scaling_fr : 18.4113940007
     stabilization_length : 0.642369679198

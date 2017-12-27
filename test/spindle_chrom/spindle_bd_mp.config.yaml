@@ -1,82 +1,88 @@
-n_dim : 3
-system_diameter : 110
-sphere_diameter : 8.0
-
+n_dim: 3
+system_diameter: 110
+sphere_diameter: 8.0
+common_spring: 100.0
+common_r0: 2.0
+common_kr: 0.0
+angular_spring_type: none
 spb:
-  - properties:
-      insertion_type : RTP
-      theta : 0.0
-      phi : 0.0
-      diameter : 9.5
-      attach_diameter : 6.5
-      r0 : 2.0
-      spring : 100.0
-      color: [1.0, 0.64453125, 0.0, 1.0]
-    mt:
-      - insertion_type : Random
-        length : 3
-      - insertion_type : Random
-        length : 3
-      - insertion_type : Random
-        length : 3
-      - insertion_type : Random
-        length : 3
-      - insertion_type : Random
-        length : 3
-      - insertion_type : Random
-        length : 3
-      - insertion_type : Random
-        length : 3
-      - insertion_type : Random
-        length : 3
-      - insertion_type : Random
-        length : 3
-      - insertion_type : Random
-        length : 3
-      - insertion_type : Random
-        length : 3
-      - insertion_type : Random
-        length : 3
-      - insertion_type : Random
-        length : 3
-      - insertion_type : Random
-        length : 3
-
-  - properties:
-      insertion_type : RTP
-      theta : 0.177
-      phi : 1.57
-      diameter : 9.5
-      attach_diameter : 6.5
-      spring : 100.0
-      r0 : 2.0
-      color: [1.0, 0.64453125, 0.0, 1.0]
-    mt:
-      - insertion_type : Random
-        length : 3
-      - insertion_type : Random
-        length : 3
-      - insertion_type : Random
-        length : 3
-      - insertion_type : Random
-        length : 3
-      - insertion_type : Random
-        length : 3
-      - insertion_type : Random
-        length : 3
-      - insertion_type : Random
-        length : 3
-      - insertion_type : Random
-        length : 3
-      - insertion_type : Random
-        length : 3
-      - insertion_type : Random
-        length : 3
-      - insertion_type : Random
-        length : 3
-      - insertion_type : Random
-        length : 3
-      - insertion_type : Random
-        length : 3
-      - insertion_type : Random
-        length : 3
+- properties:
+    insertion_type: RTP
+    theta: 0.0
+    phi: 0.0
+    diameter: 9.5
+    attach_diameter: 6.5
+    color:
+    - 0.0
+    - 0.0
+    - 255.0
+    - 1.0
+  mt:
+  - insertion_type: Random
+    length: 3
+  - insertion_type: Random
+    length: 3
+  - insertion_type: Random
+    length: 3
+  - insertion_type: Random
+    length: 3
+  - insertion_type: Random
+    length: 3
+  - insertion_type: Random
+    length: 3
+  - insertion_type: Random
+    length: 3
+  - insertion_type: Random
+    length: 3
+  - insertion_type: Random
+    length: 3
+  - insertion_type: Random
+    length: 3
+  - insertion_type: Random
+    length: 3
+  - insertion_type: Random
+    length: 3
+  - insertion_type: Random
+    length: 3
+  - insertion_type: Random
+    length: 3
+- properties:
+    insertion_type: RTP
+    theta: 0.177
+    phi: 1.57
+    diameter: 9.5
+    attach_diameter: 6.5
+    color:
+    - 0.0
+    - 0.0
+    - 255.0
+    - 1.0
+  mt:
+  - insertion_type: Random
+    length: 3
+  - insertion_type: Random
+    length: 3
+  - insertion_type: Random
+    length: 3
+  - insertion_type: Random
+    length: 3
+  - insertion_type: Random
+    length: 3
+  - insertion_type: Random
+    length: 3
+  - insertion_type: Random
+    length: 3
+  - insertion_type: Random
+    length: 3
+  - insertion_type: Random
+    length: 3
+  - insertion_type: Random
+    length: 3
+  - insertion_type: Random
+    length: 3
+  - insertion_type: Random
+    length: 3
+  - insertion_type: Random
+    length: 3
+  - insertion_type: Random
+    length: 3

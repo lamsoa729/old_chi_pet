@@ -180,7 +180,7 @@ class ChiSim(object):
 
     ### Just some utility stuff
     def FakeGaussianSignal(self, x, mu, sigma):
-        return np.exp(-np.power(x - mu, 2.) / (2 * np.power(sigma, 2.)))
+        return (1.0 / sigma / np.sqrt(2*np.pi)) * np.exp(-np.power(x - mu, 2.) / (2 * np.power(sigma, 2.)))
 
     ### ParticleSwarm specific information
     def CreateParticleSwarm(self):
@@ -211,7 +211,7 @@ class ChiSim(object):
                 y = self.chiparams[1].values[idx]
                 z = self.chiparams[2].values[idx]
                 #print "(x,y,z) = ({}, {}, {})".format(x, y, z)
-                self.fitness[idx] = self.FakeGaussianSignal(x, 184, 20) * self.FakeGaussianSignal(y, 80, 20) * self.FakeGaussianSignal(z, 110, 40)
+                self.fitness[idx] = self.FakeGaussianSignal(x, 184, 20) * self.FakeGaussianSignal(y, 80, 80) * self.FakeGaussianSignal(z, 110, 40)
             return
 
         # Look for the fitness file in the data directory for each particle
@@ -333,6 +333,11 @@ class ChiSim(object):
         for ichi in xrange(len(self.chiparams)):
             str2 += " {0:10.3f}   ".format(self.gbestx[ichi].values[self.gbestid])
         print str2
+
+        #str3 = "{} {} ".format("gfull", self.gbest)
+        #for ichi in xrange(len(self.chiparams)):
+        #    str3 += " {} ".format(self.gbestx[ichi].values[self.gbestid])
+        #print str3
 
 
 # Class to fill Sim directories with seed directories
