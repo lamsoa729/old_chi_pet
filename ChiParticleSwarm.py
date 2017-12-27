@@ -90,17 +90,17 @@ class ChiParticleSwarm(ChiCreate):
     def CreateParticleSwarmData(self):
         self.Sim.CreateParticleSwarm()
 
-    def GenerateFitnessInformation(self):
+    def GenerateFitnessInformation(self, dotest=False):
         # We have to look up the fitness information based on the driectory names and correlate this
         # with the proper sim, otherwise, is useless
         sim_dir_name = "generations/gen{0}".format(self.generation)
         sim_dir = os.path.join(self.opts.workdir, sim_dir_name)
 
         # Always a shotgun type creation of directory struct
-        self.Sim.UpdateFitness(sim_dir)
+        self.Sim.UpdateFitness(sim_dir, dotest)
 
     # Procreate Functionality
-    def Procreate(self):
+    def Procreate(self, dotest=False):
         # Load self
         generations = [dirname for dirname in os.listdir('generations') if dirname.startswith('gen')]
         generationints = [int(filter(str.isdigit, str1)) for str1 in generations]
@@ -117,7 +117,7 @@ class ChiParticleSwarm(ChiCreate):
 
         self.PrintSwarm()
         print " -- Particle Swarm Procreating from max generation {}".format(self.maxgen)
-        self.GenerateFitnessInformation()
+        self.GenerateFitnessInformation(dotest)
         #self.Sim.UpdateFitness()
         print " -- Input Parameters -- "
         self.Sim.PrintSwarmCurrent()
@@ -173,6 +173,9 @@ def parse_args():
     parser.add_argument('-B', '--bias', nargs='+', type=float, metavar='DIRS',
             help='Biases curreng generation by directly implementing the values')
 
+    parser.add_argument('-T', '--test', action='store_true',
+            help='Test the particle swarm optimization')
+
     opts = parser.parse_args()
     return opts
 
@@ -181,6 +184,6 @@ if __name__ == "__main__":
     opts = parse_args()
     c = ChiParticleSwarm(None, None, 0)
     if opts.procreate:
-        c.Procreate()
+        c.Procreate(opts.test)
     elif opts.bias:
         c.Bias(opts)

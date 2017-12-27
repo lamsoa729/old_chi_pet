@@ -202,15 +202,17 @@ class ChiSim(object):
         #print "velocity: {}".format(self.velocity)
 
     # Update the fitness of myself for all the subsims
-    def UpdateFitness(self, sim_dir):
+    def UpdateFitness(self, sim_dir, dotest=False):
         print " -- Simulations Checking and Updating Fitness -- "
-        ## XXX FIXME spoof this for now
-        #print " WARNING ERROR Using fake fitness function!!!!!"
-        #for idx in xrange(self.nparticles):
-        #    x = self.chiparams[0].values[idx]
-        #    y = self.chiparams[1].values[idx]
-        #    z = self.chiparams[2].values[idx]
-        #    self.fitness[idx] = self.FakeGaussianSignal(x, 184, 20) * self.FakeGaussianSignal(y, 80, 20) * self.FakeGaussianSignal(z, 110, 40)
+        if dotest:
+            print " WARNING ERROR Using fake fitness function!!!!!"
+            for idx in xrange(self.nparticles):
+                x = self.chiparams[0].values[idx]
+                y = self.chiparams[1].values[idx]
+                z = self.chiparams[2].values[idx]
+                #print "(x,y,z) = ({}, {}, {})".format(x, y, z)
+                self.fitness[idx] = self.FakeGaussianSignal(x, 184, 20) * self.FakeGaussianSignal(y, 80, 20) * self.FakeGaussianSignal(z, 110, 40)
+            return
 
         # Look for the fitness file in the data directory for each particle
         for idx in xrange(self.nparticles):
@@ -266,7 +268,7 @@ class ChiSim(object):
                 oldval = self.chiparams[ichi].values[idx]
                 upperb = self.chiparams[ichi].bounds[1]
                 lowerb = self.chiparams[ichi].bounds[0]
-                vmax = upperb - lowerb
+                vmax = (upperb - lowerb) / 2.0
                 pbestval = self.pbestx[idx][ichi].values[self.pbestid[idx]]
                 gbestval = self.gbestx[ichi].values[self.gbestid]
                 #print "oldval: {}".format(oldval)
