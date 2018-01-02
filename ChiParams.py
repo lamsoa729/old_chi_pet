@@ -237,6 +237,7 @@ class ChiSim(object):
                 em_fitness = 0.0
                 length_fitness = 0.0
                 chromosome_fitness = 0.0
+                success_fitness = 0.0
                 em_fitness = (fitness_yaml['short'] + fitness_yaml['med'] + fitness_yaml['long'])/3.
                 length_fitness = fitness_yaml['length_fitness']
                 success_fitness = fitness_yaml['success_fraction']
