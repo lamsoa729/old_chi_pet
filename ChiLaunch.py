@@ -242,6 +242,7 @@ def ChiLaunch(simdirs, opts=''):
         print "Searching for path {0}".format(simd)
 
         if fnmatch.fnmatch(simd, '*.txt'):
+            print "Ignoring text file {}".format(simd)
             continue
         if os.path.exists(simd):
             print "path exists, checking for seeds..."
