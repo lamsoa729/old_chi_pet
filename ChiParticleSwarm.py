@@ -65,18 +65,20 @@ class ChiParticleSwarm(ChiCreate):
         # Make run directory
         if self.opts.replace and os.path.exists(sim_dir_name):
             shutil.rmtree(sim_dir)
-        os.makedirs(sim_dir)
+        if not os.path.exists(sim_dir_name):
+            os.makedirs(sim_dir)
 
         # Always a shotgun type creation of directory struct
         l = []
         for i in range(self.opts.n):
             l += [ [i]*len(self.ChiParams) ]
 
-        # Loop through indices and make the new sim directories 
-        # and place seed directories in them
+        # Create a master list of the particular parameter points and the Sim name in an
+        # index/database to lookup later!
+        # Loop through the sim stuff, it should handle writing out the hash to the database file
         print " -- Making Particle Swarm Generation {} -- ".format(self.generation)
         for il in l:
-            self.Sim.MakeSimDirectory(sim_dir_name, il)
+            self.Sim.MakeSimDirectoryDatabase(sim_dir_name, self.generation, il)
 
         # Save myself off to the directory
         self.savestate("generations")
@@ -89,6 +91,9 @@ class ChiParticleSwarm(ChiCreate):
     ### Particle Swarm specifics
     def CreateParticleSwarmData(self):
         self.Sim.CreateParticleSwarm()
+        sim_dir_name = "generations/gen{0}".format(self.generation)
+        sim_dir = os.path.join(self.opts.workdir, sim_dir_name)
+        self.Sim.CreateParticleSwarmDatabase(sim_dir, self.generation)
 
     def GenerateFitnessInformation(self, dotest=False):
         # We have to look up the fitness information based on the driectory names and correlate this
@@ -155,7 +160,7 @@ class ChiParticleSwarm(ChiCreate):
         print " -- Input Parameters -- "
         self.Sim.PrintSwarmCurrent()
         print " -- Bias Swarm {} -- ".format(opts.bias)
-        self.Sim.BiasSwarm(opts.bias)
+        self.Sim.BiasSwarm(opts.bias, opts.specialbias)
         print " -- Output Parameters -- "
         self.Sim.PrintSwarmCurrent()
 
@@ -171,7 +176,10 @@ def parse_args():
             help='Procreates based on most recent generation in DIRS list.')
 
     parser.add_argument('-B', '--bias', nargs='+', type=float, metavar='DIRS',
-            help='Biases curreng generation by directly implementing the values')
+            help='Biases current generation by directly implementing the values')
+
+    parser.add_argument('-S', '--specialbias', nargs='+', type=int, metavar = 'DIRS',
+            help='Biases current generation particle specified')
 
     parser.add_argument('-T', '--test', action='store_true',
             help='Test the particle swarm optimization')

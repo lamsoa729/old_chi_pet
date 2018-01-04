@@ -29,21 +29,21 @@ chromosomes:
     AF_spring: ChiParam(format_str = "AFkm{}", exec_str = "UniformRandom(bounds=[6.1,45.29])")
     progressive_locking: 1
     AF_kr:
-    - 1.0
-    - 10.0
-    - 100.0
-    - 100.0
+    - ChiParam(format_str = "AFkrF{}", exec_str = "UniformRandom(bounds=[1.0,100.0])")
+    - ChiParam(format_str = "AFkrS{}", exec_str = "UniformRandom(bounds=[1.0,100.0])")
+    - ChiParam(format_str = "AFkrT{}", exec_str = "UniformRandom(bounds=[1.0,100.0])")
+    - ChiParam(format_str = "AFkrR{}", exec_str = "UniformRandom(bounds=[1.0,100.0])")
     AF_rest_length: 2.16 #54nm 
     AF_xc_assemble: ChiParam(format_str = "xca{}", exec_str = "UniformRandom(bounds=[0.0, 0.2])")
     AF_xc_disemble: ChiParam(format_str = "xcd{}", exec_str = "UniformRandom(bounds=[-0.2, 0.0])")
     AF_xc_side: ChiParam(format_str = "xcs{}", exec_str = "UniformRandom(bounds=[-0.2, 0.2])")
     AF_characteristic_angular_factor: ChiParam(format_str = "ChiC{}", exec_str = "UniformRandom(bounds=[0.0,0.1])")
-    AF_tip_concentration: 1000.0
-    AF_tip_on_rate_assemble: 4.0e-6
-    AF_tip_on_rate_disemble: 0.0012
+    AF_tip_concentration: ChiParam(format_str = "Teff{}", exec_str = "UniformRandom(bounds=[1.0,10000.0])")
+    AF_tip_on_rate_assemble: ChiParam(format_str = "AFtkona{}", exec_str = "UniformRandom(bounds=[4.0e-4,4.0e-7])")
+    AF_tip_on_rate_disemble: ChiParam(format_str = "AFtkond{}", exec_str = "UniformRandom(bounds=[0.0, 0.002])")
     AF_tip_diffusion: 0.07
-    AF_side_concentration: 10.0
-    AF_side_on_rate: 0.0012
+    AF_side_concentration: ChiParam(format_str = "Seff{}", exec_str = "UniformRandom(bounds=[1.0,10000.0])")
+    AF_side_on_rate: ChiParam(format_str = "AFskon{}", exec_str = "UniformRAndom(bounds=[0.0,0.002])")
     AF_side_diffusion: 1.03 # Chip Asbury
     AF_tip_distance: 1.0 # 25nm
     AF_tip_crowd: true
@@ -56,7 +56,7 @@ chromosomes:
     translational_drag: 15.0 # Match diffusion to Kalinina of 5.9e-4 um^2/sec -> 30sigma^2/s roughly
     rotational_drag: 1125.0 # (8/3)*(gt/2)^3 (gt = last number)
     color_chromatid: [0.0, 0.0, 255.0, 1.0]
-    AF_velocity: 0.071
+    AF_velocity: ChiParam(format_str = "AFvel{}", exec_str = "UniformRandom(bounds=[-0.1,0.1])")
     AF_stall_force: 30.2 #matches Cut7
   chromosome:
     - insertion_type: spblink

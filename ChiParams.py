@@ -6,6 +6,7 @@ import pdb
 import re
 import numpy as np 
 import random
+import hashlib
 from shutil import copy as cp
 from math import *
 from subprocess import call
@@ -172,6 +173,34 @@ class ChiSim(object):
         print "   {}".format(sim_dir)
         self.seeds.MakeSeedDirectories(sim_dir, self.yml_file_dict, self.opts)
 
+    def MakeSimDirectoryDatabase(self, run_dir, gen, ind_lst=[]):
+        # Update the parameter values the same as the last type of sim directory sturcture
+        sim_values = ""
+        sim_name = ""
+        for i,p in zip(ind_lst, self.chiparams):
+            p.UpdateParamValue(i)
+            sim_values += str(p[i]) + " "
+            sim_name += p.format(p[i]) + "_"
+
+        sim_name = sim_name[:-1]
+        sim_values = sim_values[:-1]
+        #print "sim_values: {}".format(sim_values)
+        #print "sim_name: {}".format(sim_name)
+        hash_object = hashlib.md5(sim_name.encode())
+        #print "hash: {}".format(hash_object.hexdigest())
+
+        with open(os.path.join(run_dir, "gen{}_database.txt".format(gen)), "a") as stream:
+            stream.write(sim_values)
+            stream.write(" ")
+            stream.write(hash_object.hexdigest())
+            stream.write("\n")
+
+        # Create the hashed sim directory
+        sim_dir = os.path.join(run_dir, hash_object.hexdigest())
+        os.mkdir(sim_dir)
+        print "   {} (from {})".format(sim_dir, sim_name)
+        self.seeds.MakeSeedDirectories(sim_dir, self.yml_file_dict, self.opts)
+        
     def DumpPickle(self, sim_dir):
         pkl_filename = os.path.join(sim_dir, 'sim_data.pickle')
         with open(pkl_filename, 'w') as pkl_file:
@@ -180,7 +209,8 @@ class ChiSim(object):
 
     ### Just some utility stuff
     def FakeGaussianSignal(self, x, mu, sigma):
-        return (1.0 / sigma / np.sqrt(2*np.pi)) * np.exp(-np.power(x - mu, 2.) / (2 * np.power(sigma, 2.)))
+        #return (1.0 / sigma / np.sqrt(2*np.pi)) * np.exp(-np.power(x - mu, 2.) / (2 * np.power(sigma, 2.)))
+        return np.exp(-np.power(x - mu, 2.) / (2 * np.power(sigma, 2.)))
 
     ### ParticleSwarm specific information
     def CreateParticleSwarm(self):
@@ -200,6 +230,18 @@ class ChiSim(object):
             for idx in xrange(self.nparticles):
                 self.velocity[idx][ichi] = random.uniform(-vmax, vmax)
         #print "velocity: {}".format(self.velocity)
+
+    def CreateParticleSwarmDatabase(self, sim_dir, gen):
+        # Create a database of the parameters, write them out to start with
+        os.makedirs(sim_dir)
+
+        # Space separated parameter values
+        param_str = ""
+        for ichi in xrange(len(self.chiparams)):
+            param_str += "{} ".format(self.chiparams[ichi])
+        param_str += "hash"
+        with open(os.path.join(sim_dir, "gen{}_database.txt".format(gen)), "w") as stream:
+            stream.write("{}\n".format(param_str))
 
     # Update the fitness of myself for all the subsims
     def UpdateFitness(self, sim_dir, dotest=False):
@@ -224,7 +266,8 @@ class ChiSim(object):
                 sim_name += p.format(p[idx]) + "_"
 
             sim_name = sim_name[:-1]
-            sim_full_path = os.path.join(sim_dir, sim_name)
+            hash_object = hashlib.md5(sim_name.encode())
+            sim_full_path = os.path.join(sim_dir, hash_object.hexdigest())
 
             # Generate the sim fitness data!
             status = call(['SpindleAnalysis', '--sim', '-R', '-F', '-d', sim_full_path])
@@ -300,9 +343,11 @@ class ChiSim(object):
             self.fitness[idx] = float('nan')
 
     # Bias the swarm variables at random
-    def BiasSwarm(self, bias):
+    def BiasSwarm(self, bias, specialbias):
         # Pick a random particle
         idx = random.randint(0, self.nparticles-1)
+        if specialbias:
+            idx = specialbias[0]
         print "Chose random particle {}".format(idx)
         for ichi in xrange(len(self.chiparams)):
             self.chiparams[ichi].values[idx] = self.chiparams[ichi].paramtype(bias[ichi])
