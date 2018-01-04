@@ -241,12 +241,13 @@ def ChiLaunch(simdirs, opts=''):
     for simd in simdirs:
         print "Searching for path {0}".format(simd)
 
+        if fnmatch.fnmatch(simd, '*.txt'):
+            continue
         if os.path.exists(simd):
             print "path exists, checking for seeds..."
             seeddirs = seeddirs + [os.path.join(simd, f) for f in os.listdir(simd)
                                 if os.path.isdir(os.path.join(simd, f)) 
-                                and not f.startswith('.')
-                                and not fnmatch.fnmath(f, '*.txt')]
+                                and not f.startswith('.')]
             if not seeddirs:
                 print "no seeds found in sim directory"
                 return 1
