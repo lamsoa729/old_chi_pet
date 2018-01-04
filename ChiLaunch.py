@@ -4,6 +4,7 @@ import os
 import yaml
 import argparse
 import re
+import fnmatch
 
 from popen2 import popen2
 
@@ -244,7 +245,8 @@ def ChiLaunch(simdirs, opts=''):
             print "path exists, checking for seeds..."
             seeddirs = seeddirs + [os.path.join(simd, f) for f in os.listdir(simd)
                                 if os.path.isdir(os.path.join(simd, f)) 
-                                and not f.startswith('.')]
+                                and not f.startswith('.')
+                                and not fnmatch.fnmath(f, '*.txt')]
             if not seeddirs:
                 print "no seeds found in sim directory"
                 return 1
