@@ -23,7 +23,7 @@ chromosomes:
     AuroraB: 1
     AuroraB_factor: ChiParam(format_str = "ABK{}", exec_str = "UniformRandom(bounds=[1.0, 100.0])")
     Dam1: 1
-    Dam1_catastrophe_factor: ChiParam(format_str = "dam{}", exec_str = "UniformRandom(bounds=[0.0,2.0])")
+    Dam1_catastrophe_factor: ChiParam(format_str = "dam{}", exec_str = "UniformRandom(bounds=[0.0,10.0])")
     AF_number_complexes: 3
     AF_exclusion_radius: 1.6 # 40nm separation
     AF_spring: ChiParam(format_str = "AFkm{}", exec_str = "UniformRandom(bounds=[6.1,45.29])")
@@ -43,7 +43,7 @@ chromosomes:
     AF_tip_on_rate_disemble: ChiParam(format_str = "AFtkond{}", exec_str = "UniformRandom(bounds=[0.0, 0.002])")
     AF_tip_diffusion: 0.07
     AF_side_concentration: ChiParam(format_str = "Seff{}", exec_str = "UniformRandom(bounds=[1.0,10000.0])")
-    AF_side_on_rate: ChiParam(format_str = "AFskon{}", exec_str = "UniformRAndom(bounds=[0.0,0.002])")
+    AF_side_on_rate: ChiParam(format_str = "AFskon{}", exec_str = "UniformRandom(bounds=[0.0,0.002])")
     AF_side_diffusion: 1.03 # Chip Asbury
     AF_tip_distance: 1.0 # 25nm
     AF_tip_crowd: true
