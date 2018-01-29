@@ -281,12 +281,15 @@ class ChiSim(object):
                 length_fitness = 0.0
                 chromosome_fitness = 0.0
                 success_fitness = 0.0
+                length_correlation_avg = 0.0
                 em_fitness = (fitness_yaml['short'] + fitness_yaml['med'] + fitness_yaml['long'])/3.
                 length_fitness = fitness_yaml['length_fitness']
                 success_fitness = fitness_yaml['success_fraction']
+                length_correlation_avg = fitness_yaml['length_correlation_avg']
                 if 'chromosome_seconds_fraction' in fitness_yaml:
                     chromosome_fitness = fitness_yaml['chromosome_seconds_fraction']
-                total_fitness = em_fitness + length_fitness + chromosome_fitness + success_fitness
+                #total_fitness = em_fitness + length_fitness + chromosome_fitness + success_fitness
+                total_fitness = em_fitness + length_correlation_avg + chromosome_fitness + success_fitness
                 self.fitness[idx] = total_fitness
 
     # Update the best position of the swarm variables
