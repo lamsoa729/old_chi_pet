@@ -218,9 +218,11 @@ class ChiSim(object):
         self.pbest = [np.float(0) for i in xrange(self.nparticles)]
         self.pbestid = [np.int(i) for i in xrange(self.nparticles)]
         self.pbestx = [deepcopy(self.chiparams) for i in xrange(self.nparticles)]
+        self.pbest_better = [' ' for i in xrange(self.nparticles)]
         self.gbest = np.float(0)
         self.gbestid = np.int(0)
         self.gbestx = None
+        self.gbest_better = ' '
         self.fitness = [np.float(0) for i in xrange(self.nparticles)]
         self.velocity = np.zeros((self.nparticles, len(self.chiparams)))
         # For each chiparam, create a velocity based on the vmax for each particle and each chiparam
@@ -295,16 +297,20 @@ class ChiSim(object):
     # Update the best position of the swarm variables
     def UpdateBest(self):
         pcurr = [np.float(0) for i in xrange(self.nparticles)]
+        self.pbest_better = [' ' for i in xrange(self.nparticles)]
+        self.gbest_better = ' '
         for i in xrange(self.nparticles):
             pcurr[i] = self.fitness[i]
             if pcurr[i] > self.pbest[i]:
                 self.pbest[i] = pcurr[i]
                 self.pbestx[i] = deepcopy(self.chiparams)
                 self.pbestid[i] = np.int(i)
+                self.pbest_better[i] = '*'
             if pcurr[i] > self.gbest:
                 self.gbest = pcurr[i]
                 self.gbestx = deepcopy(self.chiparams)
                 self.gbestid = np.int(i)
+                self.gbest_better = '*'
 
     # Update the positions and velocities of the particles in the sytem
     def UpdatePositions(self):
@@ -346,14 +352,15 @@ class ChiSim(object):
             self.fitness[idx] = float('nan')
 
     # Bias the swarm variables at random
-    def BiasSwarm(self, bias, specialbias):
-        # Pick a random particle
-        idx = random.randint(0, self.nparticles-1)
-        if specialbias:
-            idx = specialbias[0]
-        print "Chose random particle {}".format(idx)
-        for ichi in xrange(len(self.chiparams)):
-            self.chiparams[ichi].values[idx] = self.chiparams[ichi].paramtype(bias[ichi])
+    def BiasSwarm(self, bias):
+        # Do via the dataframe that we received
+        for idx,row in bias.iterrows():
+            # Get the particle id
+            pid = row[0]
+            # Loop over the chiparams and set them, note, this has to index by 1 further because of
+            # the particle taking up a spot in the dataframe
+            for ichi in xrange(len(self.chiparams)):
+                self.chiparams[ichi].values[pid] = self.chiparams[ichi].paramtype(row[ichi+1])
 
     def PrintSwarmCurrent(self):
         str0 = "id  fitness "
@@ -376,11 +383,13 @@ class ChiSim(object):
             str1 = "{0:<3d}  {1:>6.3f} ".format(idx, self.pbest[idx])
             for ichi in xrange(len(self.chiparams)):
                 str1 += " {0:10.3f}   ".format(self.pbestx[idx][ichi].values[self.pbestid[idx]])
+            str1 += " {} ".format(self.pbest_better[idx])
             print str1
 
         str2 = "{0:<3s}  {1:>6.3f} ".format("g", self.gbest)
         for ichi in xrange(len(self.chiparams)):
             str2 += " {0:10.3f}   ".format(self.gbestx[ichi].values[self.gbestid])
+        str2 += " {} ".format(self.gbest_better)
         print str2
 
         #str3 = "{} {} ".format("gfull", self.gbest)

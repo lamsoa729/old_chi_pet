@@ -13,6 +13,7 @@ from ChiCreate import ChiCreate
 from ChiParams import ChiParam, ChiSim
 from collections import OrderedDict
 from ChiLib import *
+import pandas as pd
 
 from copy import deepcopy
 
@@ -160,7 +161,9 @@ class ChiParticleSwarm(ChiCreate):
         print " -- Input Parameters -- "
         self.Sim.PrintSwarmCurrent()
         print " -- Bias Swarm {} -- ".format(opts.bias)
-        self.Sim.BiasSwarm(opts.bias, opts.specialbias)
+        # Read in the file specified into a dataframe or something
+        df = pd.read_csv(opts.bias[0], delim_whitespace = True, header = None)
+        self.Sim.BiasSwarm(df)
         print " -- Output Parameters -- "
         self.Sim.PrintSwarmCurrent()
 
@@ -175,11 +178,8 @@ def parse_args():
     parser.add_argument('-P', '--procreate', nargs='+', type=str, metavar='DIRS',
             help='Procreates based on most recent generation in DIRS list.')
 
-    parser.add_argument('-B', '--bias', nargs='+', type=float, metavar='DIRS',
-            help='Biases current generation by directly implementing the values')
-
-    parser.add_argument('-S', '--specialbias', nargs='+', type=int, metavar = 'DIRS',
-            help='Biases current generation particle specified')
+    parser.add_argument('-B', '--bias', nargs='+', type=str, metavar='DIRS',
+            help='Biases current generation by directly implementing the values found in the file passed')
 
     parser.add_argument('-T', '--test', action='store_true',
             help='Test the particle swarm optimization')
