@@ -16,6 +16,7 @@ from collections import OrderedDict
 from ChiLib import *
 from copy import copy
 from copy import deepcopy
+import bisect
 
 '''
 Name:ChiParams.py
@@ -233,6 +234,16 @@ class ChiSim(object):
                 self.velocity[idx][ichi] = random.uniform(-vmax, vmax)
         #print "velocity: {}".format(self.velocity)
 
+    # Create the genetic algorithm for everything
+    def CreateGeneticAlgorithm(self):
+        self.nparticles = self.opts.n
+        # Maintain the top 5 elite genetic sequences
+        self.pelite = [np.float(0) for i in xrange(5)]
+        self.peliteid = [np.int(i) for i in xrange(5)]
+        self.pelitex = [deepcopy(self.chiparams) for i in xrange(self.nparticles)]
+        # Maintain the current fitness of the different phenotypes 
+        self.fitness = [np.float(0) for i in xrange(self.nparticles)]
+
     def CreateParticleSwarmDatabase(self, sim_dir, gen):
         # Create a database of the parameters, write them out to start with
         os.makedirs(sim_dir)
@@ -311,6 +322,13 @@ class ChiSim(object):
                 self.gbestx = deepcopy(self.chiparams)
                 self.gbestid = np.int(i)
                 self.gbest_better = '*'
+
+    # Update the current elites for the genetic algorithm
+    def UpdateBestGenetics(self):
+        print "NOT CURRENTLY IMPLEMENTED!"
+        sys.exit(1)
+        for i in xrange(self.nparticles):
+            idx = bisect.bisect(self.pelite)
 
     # Update the positions and velocities of the particles in the sytem
     def UpdatePositions(self):
@@ -396,6 +414,15 @@ class ChiSim(object):
         #for ichi in xrange(len(self.chiparams)):
         #    str3 += " {} ".format(self.gbestx[ichi].values[self.gbestid])
         #print str3
+
+    # Genetic algorithm print information
+    def PrintCurrentGenetics(self):
+        str0 = "id  fitness "
+        for idx in xrange(self.nparticles):
+            str1 = "{0:<3d}  {1:>6.3f} ".format(idx, self.fitness[idx])
+            for ichi in xrange(len(self.chiparams)):
+                str1 += "{0:>12.3f}".format(self.chiparams[ichi].values[idx])
+            print str1
 
 
 # Class to fill Sim directories with seed directories

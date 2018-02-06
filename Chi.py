@@ -12,6 +12,7 @@ from ChiParams import ChiParam, ChiSim
 from ChiLaunch import ChiLaunch
 from ChiCreate import ChiCreate
 from ChiParticleSwarm import ChiParticleSwarm
+from ChiGeneticAlgorithm import ChiGeneticAlgorithm
 from ChiRun import ChiRun
 from ChiLib import *
 
@@ -68,6 +69,10 @@ def parse_args():
     parser.add_argument('-PSC', '--particleswarmcreate', metavar='PARAM_FILE', 
             nargs='+', type=str,
             help='Particle Swarm Optimization Creation. Creates seed directories with simulation structure that can be launched with ChiLaunch.py. PARAM_FILEs are copied into seed directories with ChiParams chosen according to the random distribution specified. Need -n to specify the number of random population members (default=10).')
+
+    parser.add_argument('-GAC', '--geneticalgorithmcreate', metavar='PARAM_FILE', 
+            nargs='+', type=str,
+            help='Genetic Algorithm Optimization Creation. Creates seed directories with simulation structure that can be launched with ChiLaunch.py. PARAM_FILEs are copied into seed directories with ChiParams chosen according to the random distribution specified. Need -n to specify the number of random population members (default=10).')
 
     # RUN options only
     parser.add_argument('-R', '--run', action="store_true",
@@ -128,6 +133,10 @@ class ChiMain(object):
         elif self.opts.particleswarmcreate:
             c = ChiParticleSwarm(self.opts, self.opts.workdir, 0)
             c.Create(self.opts.particleswarmcreate)
+
+        elif self.opts.geneticalgorithmcreate:
+            c = ChiGeneticAlgorithm(self.opts, self.opts.workdir, 0)
+            c.Create(self.opts.geneticalgorithmcreate)
 
         elif self.opts.run:
             c = ChiRun(self.opts)

@@ -61,6 +61,8 @@ class ChiCreate(object):
             self.Sim.UpdateShotgunParamValues()
         elif self.opts.particleswarmcreate: # Duplicates the behavior of the shotgun approach
             self.Sim.UpdateShotgunParamValues()
+        elif self.opts.geneticalgorithmcreate: # Duplicates the behavior again
+            self.Sim.UpdateShotgunParamValues()
 
         self.Sim.MakeSeeds()
 
