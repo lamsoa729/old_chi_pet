@@ -216,15 +216,15 @@ class ChiSim(object):
     ### ParticleSwarm specific information
     def CreateParticleSwarm(self):
         self.nparticles = self.opts.n
-        self.pbest = [np.float(0) for i in xrange(self.nparticles)]
+        self.pbest = [np.float(-10.0) for i in xrange(self.nparticles)]
         self.pbestid = [np.int(i) for i in xrange(self.nparticles)]
         self.pbestx = [deepcopy(self.chiparams) for i in xrange(self.nparticles)]
         self.pbest_better = [' ' for i in xrange(self.nparticles)]
-        self.gbest = np.float(0)
+        self.gbest = np.float(-10.0)
         self.gbestid = np.int(0)
         self.gbestx = None
         self.gbest_better = ' '
-        self.fitness = [np.float(0) for i in xrange(self.nparticles)]
+        self.fitness = [np.float(-10.0) for i in xrange(self.nparticles)]
         self.velocity = np.zeros((self.nparticles, len(self.chiparams)))
         # For each chiparam, create a velocity based on the vmax for each particle and each chiparam
         for ichi in xrange(len(self.chiparams)):
@@ -291,23 +291,26 @@ class ChiSim(object):
                 fitness_yaml = yaml.load(stream)
                 # Compile fitness information
                 em_fitness = 0.0
-                length_fitness = 0.0
-                chromosome_fitness = 0.0
-                success_fitness = 0.0
                 length_correlation_avg = 0.0
+                fbiorientation = 0.0
+                kinetochore_fitness = 0.0
+
+                # Get the EM and length correlation fitness information
                 em_fitness = (fitness_yaml['short'] + fitness_yaml['med'] + fitness_yaml['long'])/3.
-                length_fitness = fitness_yaml['length_fitness']
-                success_fitness = fitness_yaml['success_fraction']
                 length_correlation_avg = fitness_yaml['length_correlation_avg']
+
+                # Get the chromosome fitness information, base it off chromosome seconds fraction key
                 if 'chromosome_seconds_fraction' in fitness_yaml:
-                    chromosome_fitness = fitness_yaml['chromosome_seconds_fraction']
-                #total_fitness = em_fitness + length_fitness + chromosome_fitness + success_fitness
-                total_fitness = em_fitness + length_correlation_avg + chromosome_fitness + success_fitness
+                    fbiorientation = fitness_yaml['fbiorientation']
+                    kinetochore_fitness = np.mean([fitness_yaml['chromosome_kc_spb_distance'], fitness_yaml['chromosome_kc_spindle1d']])
+
+                # Combine total fitness in our special way
+                total_fitness = em_fitness + 2.0*length_correlation_avg + fbiorientation + kinetochore_fitness
                 self.fitness[idx] = total_fitness
 
     # Update the best position of the swarm variables
     def UpdateBest(self):
-        pcurr = [np.float(0) for i in xrange(self.nparticles)]
+        pcurr = [np.float(-10.0) for i in xrange(self.nparticles)]
         self.pbest_better = [' ' for i in xrange(self.nparticles)]
         self.gbest_better = ' '
         for i in xrange(self.nparticles):
@@ -374,7 +377,7 @@ class ChiSim(object):
         # Do via the dataframe that we received
         for idx,row in bias.iterrows():
             # Get the particle id
-            pid = row[0]
+            pid = np.int(row[0])
             # Loop over the chiparams and set them, note, this has to index by 1 further because of
             # the particle taking up a spot in the dataframe
             for ichi in xrange(len(self.chiparams)):

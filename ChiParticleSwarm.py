@@ -112,6 +112,9 @@ class ChiParticleSwarm(ChiCreate):
         generationints = [int(filter(str.isdigit, str1)) for str1 in generations]
         maxgen = max(generationints)
 
+        # Save off the information about the opts, path, etc
+        cur_cwd = self.cwd
+
         filename = os.path.join('generations', 'sim_data_swarm_{}.pickle'.format(maxgen))
         self.load(filename)
 
@@ -120,6 +123,7 @@ class ChiParticleSwarm(ChiCreate):
         generationints = [int(filter(str.isdigit, str1)) for str1 in generations]
         self.maxgen = max(generationints)
         self.nextgen = self.maxgen + 1
+        self.cwd = cur_cwd
 
         self.PrintSwarm()
         print " -- Particle Swarm Procreating from max generation {}".format(self.maxgen)
@@ -190,7 +194,7 @@ def parse_args():
 ### Main function to test stuff?
 if __name__ == "__main__":
     opts = parse_args()
-    c = ChiParticleSwarm(None, None, 0)
+    c = ChiParticleSwarm(opts, os.getcwd(), 0)
     if opts.procreate:
         c.Procreate(opts.test)
     elif opts.bias:
