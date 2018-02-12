@@ -305,7 +305,7 @@ class ChiSim(object):
                     kinetochore_fitness = np.mean([fitness_yaml['chromosome_kc_spb_distance'], fitness_yaml['chromosome_kc_spindle1d']])
 
                 # Combine total fitness in our special way
-                total_fitness = em_fitness + 2.0*length_correlation_avg + fbiorientation + kinetochore_fitness
+                total_fitness = em_fitness + 2.0*length_correlation_avg + 2.0*fbiorientation + kinetochore_fitness
                 self.fitness[idx] = total_fitness
 
     # Update the best position of the swarm variables
