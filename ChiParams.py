@@ -289,23 +289,27 @@ class ChiSim(object):
             data_file_path = os.path.join(sim_full_path, 'data', 'fitness_final.yaml')
             with open(data_file_path, 'r') as stream:
                 fitness_yaml = yaml.load(stream)
-                # Compile fitness information
-                em_fitness = 0.0
-                length_correlation_avg = 0.0
-                fbiorientation = 0.0
-                kinetochore_fitness = 0.0
+                ## Compile fitness information
+                #em_fitness = 0.0
+                #length_correlation_avg = 0.0
+                #fbiorientation = 0.0
+                #kinetochore_fitness = 0.0
 
-                # Get the EM and length correlation fitness information
-                em_fitness = (fitness_yaml['short'] + fitness_yaml['med'] + fitness_yaml['long'])/3.
-                length_correlation_avg = fitness_yaml['length_correlation_avg']
+                ## Get the EM and length correlation fitness information
+                #em_fitness = (fitness_yaml['short'] + fitness_yaml['med'] + fitness_yaml['long'])/3.
+                #length_correlation_avg = fitness_yaml['length_correlation_avg']
 
-                # Get the chromosome fitness information, base it off chromosome seconds fraction key
-                if 'chromosome_seconds_fraction' in fitness_yaml:
-                    fbiorientation = fitness_yaml['fbiorientation']
-                    kinetochore_fitness = np.mean([fitness_yaml['chromosome_kc_spb_distance'], fitness_yaml['chromosome_kc_spindle1d']])
+                ## Get the chromosome fitness information, base it off chromosome seconds fraction key
+                #if 'chromosome_seconds_fraction' in fitness_yaml:
+                #    fbiorientation = fitness_yaml['fbiorientation']
+                #    kinetochore_fitness = np.mean([fitness_yaml['chromosome_kc_spb_distance'], fitness_yaml['chromosome_kc_spindle1d']])
 
-                # Combine total fitness in our special way
-                total_fitness = em_fitness + 2.0*length_correlation_avg + 2.0*fbiorientation + kinetochore_fitness
+                ## Combine total fitness in our special way
+                #total_fitness = em_fitness + 2.0*length_correlation_avg + 2.0*fbiorientation + kinetochore_fitness
+                #self.fitness[idx] = total_fitness
+
+                # Get what SpindleAnalysis thinks is the total fitness
+                total_fitness = fitness_yaml['FINAL_FITNESS']
                 self.fitness[idx] = total_fitness
 
     # Update the best position of the swarm variables
