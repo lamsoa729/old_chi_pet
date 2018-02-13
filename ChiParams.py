@@ -216,15 +216,15 @@ class ChiSim(object):
     ### ParticleSwarm specific information
     def CreateParticleSwarm(self):
         self.nparticles = self.opts.n
-        self.pbest = [np.float(-10.0) for i in xrange(self.nparticles)]
+        self.pbest = [np.float(-100.0) for i in xrange(self.nparticles)]
         self.pbestid = [np.int(i) for i in xrange(self.nparticles)]
         self.pbestx = [deepcopy(self.chiparams) for i in xrange(self.nparticles)]
         self.pbest_better = [' ' for i in xrange(self.nparticles)]
-        self.gbest = np.float(-10.0)
+        self.gbest = np.float(-100.0)
         self.gbestid = np.int(0)
         self.gbestx = None
         self.gbest_better = ' '
-        self.fitness = [np.float(-10.0) for i in xrange(self.nparticles)]
+        self.fitness = [np.float(-100.0) for i in xrange(self.nparticles)]
         self.velocity = np.zeros((self.nparticles, len(self.chiparams)))
         # For each chiparam, create a velocity based on the vmax for each particle and each chiparam
         for ichi in xrange(len(self.chiparams)):
@@ -314,7 +314,7 @@ class ChiSim(object):
 
     # Update the best position of the swarm variables
     def UpdateBest(self):
-        pcurr = [np.float(-10.0) for i in xrange(self.nparticles)]
+        pcurr = [np.float(-100.0) for i in xrange(self.nparticles)]
         self.pbest_better = [' ' for i in xrange(self.nparticles)]
         self.gbest_better = ' '
         for i in xrange(self.nparticles):
