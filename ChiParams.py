@@ -183,7 +183,7 @@ class ChiSim(object):
             sim_values += str(p[i]) + " "
             sim_name += p.format(p[i]) + "_"
 
-        sim_name = sim_name[:-1]
+        sim_name = sim_name[:-1] + str(random.uniform(0.0, 1.0))
         sim_values = sim_values[:-1]
         #print "sim_values: {}".format(sim_values)
         #print "sim_name: {}".format(sim_name)
@@ -238,11 +238,15 @@ class ChiSim(object):
     def CreateGeneticAlgorithm(self):
         self.nparticles = self.opts.n
         # Maintain the top 5 elite genetic sequences
-        self.pelite = [np.float(0) for i in xrange(5)]
-        self.peliteid = [np.int(i) for i in xrange(5)]
-        self.pelitex = [deepcopy(self.chiparams) for i in xrange(self.nparticles)]
+        self.nelite = 5
+        self.pelite = [np.float(-100) for i in xrange(self.nelite)]
+        self.peliteid = [np.int(i) for i in xrange(self.nelite)]
+        self.pelitex = [deepcopy(self.chiparams) for i in xrange(self.nelite)]
+        self.plastx = [deepcopy(self.chiparams) for i in xrange(self.nparticles)]
+        self.pelite_better = [' ' for i in xrange(self.nelite)]
         # Maintain the current fitness of the different phenotypes 
-        self.fitness = [np.float(0) for i in xrange(self.nparticles)]
+        self.fitness = [np.float(-100) for i in xrange(self.nparticles)]
+        self.parents = [[-1,-1] for i in xrange(self.nparticles)]
 
     def CreateParticleSwarmDatabase(self, sim_dir, gen):
         # Create a database of the parameters, write them out to start with
@@ -263,10 +267,13 @@ class ChiSim(object):
             print " WARNING ERROR Using fake fitness function!!!!!"
             for idx in xrange(self.nparticles):
                 x = self.chiparams[0].values[idx]
-                y = self.chiparams[1].values[idx]
-                z = self.chiparams[2].values[idx]
+                sx = self.chiparams[1].values[idx]
+                y = self.chiparams[2].values[idx]
+                sy = self.chiparams[3].values[idx]
+                z = self.chiparams[4].values[idx]
+                sz = self.chiparams[5].values[idx]
                 #print "(x,y,z) = ({}, {}, {})".format(x, y, z)
-                self.fitness[idx] = self.FakeGaussianSignal(x, 184, 20) * self.FakeGaussianSignal(y, 80, 80) * self.FakeGaussianSignal(z, 110, 40)
+                self.fitness[idx] = self.FakeGaussianSignal(x, 184, 20) * self.FakeGaussianSignal(y, 80, 80) * self.FakeGaussianSignal(z, 110, 40) + self.FakeGaussianSignal(sx, 0.0, 0.1) + self.FakeGaussianSignal(sy, 0.0, 0.1) + self.FakeGaussianSignal(sz, 0.0, 0.1)
             return
 
         # Look for the fitness file in the data directory for each particle
@@ -332,10 +339,16 @@ class ChiSim(object):
 
     # Update the current elites for the genetic algorithm
     def UpdateBestGenetics(self):
-        print "NOT CURRENTLY IMPLEMENTED!"
-        sys.exit(1)
+        self.pelite_better = [' ' for i in xrange(self.nelite)]
         for i in xrange(self.nparticles):
-            idx = bisect.bisect(self.pelite)
+            # Test each fitness of the 'best' particles, and figure out which one is best
+            lowest_fitness = np.argmin(self.pelite)
+            self.plastx[i] = deepcopy(self.chiparams)
+            if self.pelite[lowest_fitness] < self.fitness[i]:
+                self.pelite[lowest_fitness] = self.fitness[i]
+                self.pelitex[lowest_fitness] = deepcopy(self.chiparams)
+                self.peliteid[lowest_fitness] = np.int(i)
+                self.pelite_better[lowest_fitness] = '*'
 
     # Update the positions and velocities of the particles in the sytem
     def UpdatePositions(self):
@@ -375,6 +388,175 @@ class ChiSim(object):
                 self.velocity[idx][ichi] = newvel
                 self.chiparams[ichi].values[idx] = self.chiparams[ichi].paramtype(newpos)
             self.fitness[idx] = float('nan')
+
+    # Update genetics based on tournament selection
+    def UpdateGeneticsTournament(self):
+        self.crossover_rate = 0.5
+        self.mutation_rate = 0.1
+        self.ntournament = 5
+
+        for ichild in xrange(self.nparticles/2):
+            cidx1 = 2*ichild
+            cidx2 = 2*ichild + 1
+
+            tournament = np.random.choice(self.nparticles, self.ntournament, replace=False)  
+            
+            # Take the 2 best from tournament
+            pbest1 = -1000000.0
+            pbest2 = -1000000.0
+            parent1_idx = -1
+            parent2_idx = -1
+            for idx in tournament:
+                if self.fitness[idx] > pbest1:
+                    pbest1 = self.fitness[idx]
+                    parent1_idx = idx
+
+            for idx in tournament:
+                if idx == parent1_idx:
+                    continue
+                if self.fitness[idx] > pbest2:
+                    pbest2 = self.fitness[idx]
+                    parent2_idx = idx
+
+            # Now that we have the two genetics in hand, let us use the crossover points and determine the new genome for the resulting children
+            # Iterate along the genome of the chromosomes and pick when we either do a crossover, or a mutation
+            for ichi in xrange(len(self.chiparams)):
+                # Crossover using random chance of inheriting from parent 1 or 2
+                self.parents[cidx1] = [parent1_idx, parent2_idx]
+                self.parents[cidx2] = [parent1_idx, parent2_idx]
+                rand = random.uniform(0.0, 1.0)
+                if (rand <= self.crossover_rate):
+                    self.chiparams[ichi].values[cidx1] = self.plastx[parent1_idx][ichi].paramtype(self.plastx[parent1_idx][ichi].values[parent1_idx])
+                    self.chiparams[ichi].values[cidx2] = self.plastx[parent2_idx][ichi].paramtype(self.plastx[parent2_idx][ichi].values[parent2_idx])
+                else:
+                    self.chiparams[ichi].values[cidx2] = self.plastx[parent1_idx][ichi].paramtype(self.plastx[parent1_idx][ichi].values[parent1_idx])
+                    self.chiparams[ichi].values[cidx1] = self.plastx[parent2_idx][ichi].paramtype(self.plastx[parent2_idx][ichi].values[parent2_idx])
+
+                # Now check the mutation rate
+                rand_mut1 = random.uniform(0.0, 1.0)
+                if rand_mut1 <= self.mutation_rate:
+                    newval = random.uniform(self.chiparams[ichi].bounds[0], self.chiparams[ichi].bounds[1])
+                    self.chiparams[ichi].values[cidx1] = self.chiparams[ichi].paramtype(newval)
+                rand_mut2 = random.uniform(0.0, 1.0)
+                if rand_mut2 <= self.mutation_rate:
+                    newval = random.uniform(self.chiparams[ichi].bounds[0], self.chiparams[ichi].bounds[1])
+                    self.chiparams[ichi].values[cidx2] = self.chiparams[ichi].paramtype(newval)
+
+        for i in xrange(self.nparticles):
+            self.fitness[i] = float('nan')
+
+
+    # Update the genetics information for the swarm!
+    def UpdateGeneticsRoulette(self):
+        self.min_genetics = 0.0
+
+        self.crossover_rate = 0.5
+        self.mutation_rate = 0.1
+        # Load the current fitness/genetics into a roulette wheel selection@
+        # Generate the two parents together, making sure that they are not the same parent (inbreeding is bad)
+        for ichild in xrange(self.nparticles/2):
+            cidx1 = 2*ichild
+            cidx2 = 2*ichild+1
+
+            # go through and move all the fitness to be above 0 (subtract off min)
+            self.weight_sum1 = 0.0
+            for i in xrange(self.nparticles):
+                self.weight_sum1 += self.fitness[i] - self.min_genetics
+
+            # Roulette wheel selection of the available parameters
+            value1 = random.uniform(0.0, 1.0) * self.weight_sum1
+            parent1_idx = -1
+            #cur_value1 = self.min_fitness
+            for i in xrange(self.nparticles):
+                value1 -= (self.fitness[i] - self.min_genetics)
+                if value1 <= 0.0:
+                    parent1_idx = i
+                    break
+
+            i#print "Choose parent1 idx {} ({})".format(parent1_idx, self.fitness[parent1_idx] - self.min_genetics)
+
+            # Roulette wheel of the resulting set for the next parent!
+            self.weight_sum2= 0.0
+            for i in xrange(self.nparticles):
+                if i == parent1_idx:
+                    continue
+                self.weight_sum2 += self.fitness[i] - self.min_genetics
+
+            # Roulette wheel selection of the available parameters
+            value2 = random.uniform(0.0, 1.0) * self.weight_sum2
+            parent2_idx = -1
+            for i in xrange(self.nparticles):
+                if i == parent1_idx:
+                    continue
+                value2 -= (self.fitness[i] - self.min_genetics)
+                if value2 <= 0.0:
+                    parent2_idx = i
+                    break
+
+            #print "Choose parent2 idx {} ({})".format(parent2_idx, self.fitness[parent2_idx] - self.min_genetics)
+
+            ## Two point crossover
+            ## Two point crossover
+            #self.parents[cidx1] = [parent1_idx, parent2_idx]
+            #self.parents[cidx2] = [parent1_idx, parent2_idx]
+            #cp1 = int(random.uniform(0, len(self.chiparams)))
+            #cp2 = int(random.uniform(0, len(self.chiparams)))
+            #if cp2 < cp1:
+            #    temp = cp1
+            #    cp1 = cp2
+            #    cp2 = temp
+            #if cp1 == cp2:
+            #    cp2 = cp1 + 1
+
+            #for ichi in xrange(len(self.chiparams)):
+            #    # Parent 1 for 1
+            #    if ichi <= cp1:
+            #        self.chiparams[ichi].values[cidx1] = self.plastx[parent1_idx][ichi].paramtype(self.plastx[parent1_idx][ichi].values[parent1_idx])
+            #        self.chiparams[ichi].values[cidx2] = self.plastx[parent2_idx][ichi].paramtype(self.plastx[parent2_idx][ichi].values[parent2_idx])
+            #    elif ichi <= cp2 and ichi > cp1:
+            #        self.chiparams[ichi].values[cidx2] = self.plastx[parent1_idx][ichi].paramtype(self.plastx[parent1_idx][ichi].values[parent1_idx])
+            #        self.chiparams[ichi].values[cidx1] = self.plastx[parent2_idx][ichi].paramtype(self.plastx[parent2_idx][ichi].values[parent2_idx])
+            #    else:
+            #        self.chiparams[ichi].values[cidx1] = self.plastx[parent1_idx][ichi].paramtype(self.plastx[parent1_idx][ichi].values[parent1_idx])
+            #        self.chiparams[ichi].values[cidx2] = self.plastx[parent2_idx][ichi].paramtype(self.plastx[parent2_idx][ichi].values[parent2_idx])
+            #    #Now check the mutation rate
+            #    rand_mut1 = random.uniform(0.0, 1.0)
+            #    if rand_mut1 <= self.mutation_rate:
+            #        newval = random.uniform(self.chiparams[ichi].bounds[0], self.chiparams[ichi].bounds[1])
+            #        self.chiparams[ichi].values[cidx1] = self.chiparams[ichi].paramtype(newval)
+            #    rand_mut2 = random.uniform(0.0, 1.0)
+            #    if rand_mut2 <= self.mutation_rate:
+            #        newval = random.uniform(self.chiparams[ichi].bounds[0], self.chiparams[ichi].bounds[1])
+            #        self.chiparams[ichi].values[cidx2] = self.chiparams[ichi].paramtype(newval)
+
+
+            # Now that we have the two genetics in hand, let us use the crossover points and determine the new genome for the resulting children
+            # Iterate along the genome of the chromosomes and pick when we either do a crossover, or a mutation
+            for ichi in xrange(len(self.chiparams)):
+                # Crossover using random chance of inheriting from parent 1 or 2
+                # This crossover computation is a random choice of each parent...
+                self.parents[cidx1] = [parent1_idx, parent2_idx]
+                self.parents[cidx2] = [parent1_idx, parent2_idx]
+                rand = random.uniform(0.0, 1.0)
+                if (rand <= self.crossover_rate):
+                    self.chiparams[ichi].values[cidx1] = self.plastx[parent1_idx][ichi].paramtype(self.plastx[parent1_idx][ichi].values[parent1_idx])
+                    self.chiparams[ichi].values[cidx2] = self.plastx[parent2_idx][ichi].paramtype(self.plastx[parent2_idx][ichi].values[parent2_idx])
+                else:
+                    self.chiparams[ichi].values[cidx2] = self.plastx[parent1_idx][ichi].paramtype(self.plastx[parent1_idx][ichi].values[parent1_idx])
+                    self.chiparams[ichi].values[cidx1] = self.plastx[parent2_idx][ichi].paramtype(self.plastx[parent2_idx][ichi].values[parent2_idx])
+                
+                #Now check the mutation rate
+                rand_mut1 = random.uniform(0.0, 1.0)
+                if rand_mut1 <= self.mutation_rate:
+                    newval = random.uniform(self.chiparams[ichi].bounds[0], self.chiparams[ichi].bounds[1])
+                    self.chiparams[ichi].values[cidx1] = self.chiparams[ichi].paramtype(newval)
+                rand_mut2 = random.uniform(0.0, 1.0)
+                if rand_mut2 <= self.mutation_rate:
+                    newval = random.uniform(self.chiparams[ichi].bounds[0], self.chiparams[ichi].bounds[1])
+                    self.chiparams[ichi].values[cidx2] = self.chiparams[ichi].paramtype(newval)
+
+        for i in xrange(self.nparticles):
+            self.fitness[i] = float('nan')
 
     # Bias the swarm variables at random
     def BiasSwarm(self, bias):
@@ -429,8 +611,21 @@ class ChiSim(object):
             str1 = "{0:<3d}  {1:>6.3f} ".format(idx, self.fitness[idx])
             for ichi in xrange(len(self.chiparams)):
                 str1 += "{0:>12.3f}".format(self.chiparams[ichi].values[idx])
+            str1 += " [{}, {}]".format(self.parents[idx][0], self.parents[idx][1])
             print str1
 
+
+    def PrintGeneticsBest(self):
+        str0 = "id  bestfit  "
+        for ichi in xrange(len(self.chiparams)):
+            str0 += "{:>10s}    ".format(self.chiparams[ichi])
+        print str0
+        for idx in xrange(self.nelite):
+            str1 = "{0:<3d}  {1:>6.3f} ".format(idx, self.pelite[idx])
+            for ichi in xrange(len(self.chiparams)):
+                str1 += " {0:10.3f}   ".format(self.pelitex[idx][ichi].values[self.peliteid[idx]])
+            str1 += " {} ".format(self.pelite_better[idx])
+            print str1
 
 # Class to fill Sim directories with seed directories
 class ChiSeed(ChiParam):

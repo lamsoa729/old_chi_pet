@@ -128,12 +128,13 @@ class ChiGeneticAlgorithm(ChiCreate):
         print " -- Input Parameters -- "
         self.Sim.PrintCurrentGenetics()
         print " -- Best Parameters -- "
-        self.Sim.UpdateBest()
-        self.Sim.PrintSwarmBest()
+        self.Sim.UpdateBestGenetics()
+        self.Sim.PrintGeneticsBest()
         print " -- Updating Parameter Values -- "
-        self.Sim.UpdatePositions()
+        self.Sim.UpdateGeneticsTournament()
+        #self.Sim.UpdateGeneticsRoulette()
         print " -- Output Parameters -- "
-        self.Sim.PrintSwarmCurrent()
+        self.Sim.PrintCurrentGenetics()
 
         # Write the new information
         self.generation = self.nextgen
@@ -145,7 +146,7 @@ class ChiGeneticAlgorithm(ChiCreate):
         generationints = [int(filter(str.isdigit, str1)) for str1 in generations]
         maxgen = max(generationints)
 
-        filename = os.path.join('generations', 'sim_data_swarm_{}.pickle'.format(maxgen))
+        filename = os.path.join('generations', 'sim_data_genetics_{}.pickle'.format(maxgen))
         self.load(filename)
 
         # have to reset the generation and generationints
@@ -159,13 +160,13 @@ class ChiGeneticAlgorithm(ChiCreate):
         # Bias the first entry to the updated value
         print " -- Particle Swarm Introducing Bias -- "
         print " -- Input Parameters -- "
-        self.Sim.PrintSwarmCurrent()
+        self.Sim.PrintCurrentGenetics()
         print " -- Bias Swarm {} -- ".format(opts.bias)
         # Read in the file specified into a dataframe or something
         df = pd.read_csv(opts.bias[0], delim_whitespace = True, header = None)
         self.Sim.BiasSwarm(df)
         print " -- Output Parameters -- "
-        self.Sim.PrintSwarmCurrent()
+        self.Sim.PrintCurrentGenetics()
 
         # Write the new information
         self.generation = self.nextgen
