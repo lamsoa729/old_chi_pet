@@ -183,7 +183,8 @@ class ChiSim(object):
             sim_values += str(p[i]) + " "
             sim_name += p.format(p[i]) + "_"
 
-        sim_name = sim_name[:-1] + str(random.uniform(0.0, 1.0))
+        #sim_name = sim_name[:-1] + str(random.uniform(0.0, 1.0))
+        sim_name = sim_name[:-1]
         sim_values = sim_values[:-1]
         #print "sim_values: {}".format(sim_values)
         #print "sim_name: {}".format(sim_name)
