@@ -17,6 +17,7 @@ from ChiLib import *
 from copy import copy
 from copy import deepcopy
 import bisect
+import pandas as pd
 
 '''
 Name:ChiParams.py
@@ -289,6 +290,18 @@ class ChiSim(object):
             sim_name = sim_name[:-1]
             hash_object = hashlib.md5(sim_name.encode())
             sim_full_path = os.path.join(sim_dir, hash_object.hexdigest())
+
+            # Check to see if this path exists
+            if not os.path.exists(sim_full_path):
+                print "Checking the database file for the correct hash, as something went wrong during the regeneration"
+                # See if we can reconstruct the name of the simulation from the gen database file
+                # Exploit pandas for this purpose
+                db_data = pd.read_csv(os.path.join(sim_dir, "{}_database.txt".format(os.path.basename(sim_dir))), header=None, delim_whitespace=True)
+
+                # Get the last column and position of idx in the dataframe...
+                hexdigest = db_data.iloc[idx, -1]
+
+                sim_full_path = os.path.join(sim_dir, hexdigest)
 
             # Generate the sim fitness data!
             status = call(['SpindleAnalysis', '--sim', '-R', '-F', '-d', sim_full_path])
