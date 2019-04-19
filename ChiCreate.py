@@ -93,7 +93,7 @@ class ChiCreate(object):
 
         # Loop through indices and make the new sim directories 
         # and place seed directories in them
-        print " -- Making simulations -- "
+        print(" -- Making simulations -- ")
         for il in l:
             self.Sim.MakeSimDirectory(sim_dir_name, il)
 
@@ -102,11 +102,11 @@ class ChiCreate(object):
         import pickle
         pkl_filename = os.path.join(sim_dir, 'sim_data.pickle')
         newsim = pickle.load(open(pkl_filename, 'rb'))
-        print "newsim: {}".format(newsim)
+        print("newsim: {}".format(newsim))
         for chiparam in newsim.chiparams:
-            print "newsim.chiparam: {}".format(chiparam)
-            print "values: {}".format(chiparam.values)
-            print "bounds: {}".format(chiparam.bounds)
+            print("newsim.chiparam: {}".format(chiparam))
+            print("values: {}".format(chiparam.values))
+            print("bounds: {}".format(chiparam.bounds))
 
 ##########################################
 if __name__ == "__main__":

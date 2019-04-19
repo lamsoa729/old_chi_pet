@@ -77,7 +77,7 @@ class ChiParticleSwarm(ChiCreate):
         # Create a master list of the particular parameter points and the Sim name in an
         # index/database to lookup later!
         # Loop through the sim stuff, it should handle writing out the hash to the database file
-        print " -- Making Particle Swarm Generation {} -- ".format(self.generation)
+        print(" -- Making Particle Swarm Generation {} -- ".format(self.generation))
         for il in l:
             self.Sim.MakeSimDirectoryDatabase(sim_dir_name, self.generation, il)
 
@@ -86,8 +86,8 @@ class ChiParticleSwarm(ChiCreate):
 
     ### Print functionality
     def PrintSwarm(self):
-        print "Swarm Generation: {}".format(self.generation)
-        print "   n particles: {}".format(self.Sim.nparticles)
+        print("Swarm Generation: {}".format(self.generation))
+        print("   n particles: {}".format(self.Sim.nparticles))
 
     ### Particle Swarm specifics
     def CreateParticleSwarmData(self):
@@ -109,7 +109,7 @@ class ChiParticleSwarm(ChiCreate):
     def Procreate(self, dotest=False):
         # Load self
         generations = [dirname for dirname in os.listdir('generations') if dirname.startswith('gen')]
-        generationints = [int(filter(str.isdigit, str1)) for str1 in generations]
+        generationints = [int(list(filter(str.isdigit, str1))) for str1 in generations]
         maxgen = max(generationints)
 
         # Save off the information about the opts, path, etc
@@ -120,23 +120,23 @@ class ChiParticleSwarm(ChiCreate):
 
         # have to reset the generation and generationints
         generations = [dirname for dirname in os.listdir('generations') if dirname.startswith('gen')]
-        generationints = [int(filter(str.isdigit, str1)) for str1 in generations]
+        generationints = [int(list(filter(str.isdigit, str1))) for str1 in generations]
         self.maxgen = max(generationints)
         self.nextgen = self.maxgen + 1
         self.cwd = cur_cwd
 
         self.PrintSwarm()
-        print " -- Particle Swarm Procreating from max generation {}".format(self.maxgen)
+        print(" -- Particle Swarm Procreating from max generation {}".format(self.maxgen))
         self.GenerateFitnessInformation(dotest)
         #self.Sim.UpdateFitness()
-        print " -- Input Parameters -- "
+        print(" -- Input Parameters -- ")
         self.Sim.PrintSwarmCurrent()
-        print " -- Best Parameters -- "
+        print(" -- Best Parameters -- ")
         self.Sim.UpdateBest()
         self.Sim.PrintSwarmBest()
-        print " -- Updating Parameter Values -- "
+        print(" -- Updating Parameter Values -- ")
         self.Sim.UpdatePositions()
-        print " -- Output Parameters -- "
+        print(" -- Output Parameters -- ")
         self.Sim.PrintSwarmCurrent()
 
         # Write the new information
@@ -146,7 +146,7 @@ class ChiParticleSwarm(ChiCreate):
     def Bias(self, opts):
         # Load self like in procreate
         generations = [dirname for dirname in os.listdir('generations') if dirname.startswith('gen')]
-        generationints = [int(filter(str.isdigit, str1)) for str1 in generations]
+        generationints = [int(list(filter(str.isdigit, str1))) for str1 in generations]
         maxgen = max(generationints)
 
         filename = os.path.join('generations', 'sim_data_swarm_{}.pickle'.format(maxgen))
@@ -154,21 +154,21 @@ class ChiParticleSwarm(ChiCreate):
 
         # have to reset the generation and generationints
         generations = [dirname for dirname in os.listdir('generations') if dirname.startswith('gen')]
-        generationints = [int(filter(str.isdigit, str1)) for str1 in generations]
+        generationints = [int(list(filter(str.isdigit, str1))) for str1 in generations]
         self.maxgen = max(generationints)
         self.nextgen = self.maxgen + 1
 
         # Print ourselves
         self.PrintSwarm()
         # Bias the first entry to the updated value
-        print " -- Particle Swarm Introducing Bias -- "
-        print " -- Input Parameters -- "
+        print(" -- Particle Swarm Introducing Bias -- ")
+        print(" -- Input Parameters -- ")
         self.Sim.PrintSwarmCurrent()
-        print " -- Bias Swarm {} -- ".format(opts.bias)
+        print(" -- Bias Swarm {} -- ".format(opts.bias))
         # Read in the file specified into a dataframe or something
         df = pd.read_csv(opts.bias[0], delim_whitespace = True, header = None)
         self.Sim.BiasSwarm(df)
-        print " -- Output Parameters -- "
+        print(" -- Output Parameters -- ")
         self.Sim.PrintSwarmCurrent()
 
         # Write the new information

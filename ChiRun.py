@@ -56,11 +56,11 @@ def run_parse_args():
     return opts
 
 def run_start(workdir, args): #, prefix="spindle_bd_mp"):
-    print "starting sim in {0}".format(workdir)
+    print("starting sim in {0}".format(workdir))
     sys.stdout.flush()
     if os.path.exists(workdir):
         os.chdir(workdir)
-        print args
+        print(args)
         open('.running', 'a').close()
         # args = [program, prefix+".default", prefix+".equil"]
         status = call(args)
@@ -70,7 +70,7 @@ def run_start(workdir, args): #, prefix="spindle_bd_mp"):
         return 1
 
 def run_analyze(workdir, args):
-    print "starting sim in {0}".format(workdir)
+    print("starting sim in {0}".format(workdir))
     sys.stdout.flush()
     if os.path.exists(workdir):
         os.chdir(workdir)
@@ -84,7 +84,7 @@ def run_analyze(workdir, args):
 
 def run_args(workdir, state, args):
     action = state+'-ing'
-    print "Started {} sim in {}".format(action, args)
+    print("Started {} sim in {}".format(action, args))
     sys.stdout.flush()
     if os.path.exists(workdir):
         os.chdir(workdir)
@@ -102,7 +102,7 @@ class ChiRun(object):
     def Run(self, opts):
         args_dict = {}
         if not os.path.exists(opts.workdir):
-            print "Run failed. Directory {} does not exists".format(opts.workdir)
+            print("Run failed. Directory {} does not exists".format(opts.workdir))
 
         else:
             if (opts.args_file and 
@@ -113,12 +113,12 @@ class ChiRun(object):
                 af = default_args
 
         # print OrderedYamlDump(af, default_flow_style=False)
-        for k, l in af.iteritems():
-            print "File= {}, Dictionary= {}".format(k, " ".join(l))
+        for k, l in af.items():
+            print("File= {}, Dictionary= {}".format(k, " ".join(l)))
 
             if k in opts.states:
                 if run_args(opts.workdir, k, l):
-                    print "run failed"
+                    print("run failed")
                     open('.error', 'a').close()
                 elif os.path.exists('sim.{}'.format(k)):
                     os.remove('sim.{}'.format(k))

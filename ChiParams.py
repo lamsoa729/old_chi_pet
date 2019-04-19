@@ -90,12 +90,12 @@ class ChiParam(object):
 
     def UpdateValues(self):
         if self.values:
-            self.values = map(self.paramtype, self.values)
+            self.values = list(map(self.paramtype, self.values))
         elif self.exec_str:
-            self.values = map(self.paramtype, eval(self.exec_str))
+            self.values = list(map(self.paramtype, eval(self.exec_str)))
             # print self.values
         else:
-            raise StandardError("ChiParam {} did not contain necessary inputs".format(self.format_str))
+            raise Exception("ChiParam {} did not contain necessary inputs".format(self.format_str))
 
     def AddValue(self):
         # Used mostly with Shotgun Param function
@@ -145,10 +145,10 @@ class ChiSim(object):
                 #TODO If two param value lists are different, 
                 #     choose the smaller one.
                 if self.opts.n != cparam.GetNValues():
-                    print "## Number of values of in {0}({1}) \
+                    print("## Number of values of in {0}({1}) \
                     does not match nvars given({2}). Setting nvars to {1}.".format(
                             cparam.format_str.format(0), cparam.GetNValues(),
-                            self.opts.n)
+                            self.opts.n))
                     self.opts.n = cparam.GetNValues()
                 continue
             else:
@@ -156,8 +156,8 @@ class ChiSim(object):
                     cparam.AddValue()
 
     def MakeSeeds(self):
-        sd_obj = find_str_values(self.yml_file_dict, 
-                        pattern='^ChiSeed\(.*\)').next()
+        sd_obj = next(find_str_values(self.yml_file_dict, 
+                        pattern='^ChiSeed\(.*\)'))
         self.seeds = eval(sd_obj.GetValue())
         self.seeds.SetObjRef(sd_obj)
         self.seeds.CreateSeedList()
@@ -172,7 +172,7 @@ class ChiSim(object):
 
         sim_dir = os.path.join(run_dir, sim_name[:-1])
         os.mkdir(sim_dir)
-        print "   {}".format(sim_dir)
+        print("   {}".format(sim_dir))
         self.seeds.MakeSeedDirectories(sim_dir, self.yml_file_dict, self.opts)
 
     def MakeSimDirectoryDatabase(self, run_dir, gen, ind_lst=[]):
@@ -201,7 +201,7 @@ class ChiSim(object):
         # Create the hashed sim directory
         sim_dir = os.path.join(run_dir, hash_object.hexdigest())
         os.mkdir(sim_dir)
-        print "   {} (from {})".format(sim_dir, sim_name)
+        print("   {} (from {})".format(sim_dir, sim_name))
         self.seeds.MakeSeedDirectories(sim_dir, self.yml_file_dict, self.opts)
         
     def DumpPickle(self, sim_dir):
@@ -218,21 +218,21 @@ class ChiSim(object):
     ### ParticleSwarm specific information
     def CreateParticleSwarm(self):
         self.nparticles = self.opts.n
-        self.pbest = [np.float(-100.0) for i in xrange(self.nparticles)]
-        self.pbestid = [np.int(i) for i in xrange(self.nparticles)]
-        self.pbestx = [deepcopy(self.chiparams) for i in xrange(self.nparticles)]
-        self.pbest_better = [' ' for i in xrange(self.nparticles)]
+        self.pbest = [np.float(-100.0) for i in range(self.nparticles)]
+        self.pbestid = [np.int(i) for i in range(self.nparticles)]
+        self.pbestx = [deepcopy(self.chiparams) for i in range(self.nparticles)]
+        self.pbest_better = [' ' for i in range(self.nparticles)]
         self.gbest = np.float(-100.0)
         self.gbestid = np.int(0)
         self.gbestx = None
         self.gbest_better = ' '
-        self.fitness = [np.float(-100.0) for i in xrange(self.nparticles)]
+        self.fitness = [np.float(-100.0) for i in range(self.nparticles)]
         self.velocity = np.zeros((self.nparticles, len(self.chiparams)))
         # For each chiparam, create a velocity based on the vmax for each particle and each chiparam
-        for ichi in xrange(len(self.chiparams)):
+        for ichi in range(len(self.chiparams)):
             vmax = self.chiparams[ichi].bounds[1] - self.chiparams[ichi].bounds[0]
             #print "chiparam{} vmax {}".format(ichi, vmax)
-            for idx in xrange(self.nparticles):
+            for idx in range(self.nparticles):
                 self.velocity[idx][ichi] = random.uniform(-vmax, vmax)
         #print "velocity: {}".format(self.velocity)
 
@@ -241,14 +241,14 @@ class ChiSim(object):
         self.nparticles = self.opts.n
         # Maintain the top 5 elite genetic sequences
         self.nelite = 5
-        self.pelite = [np.float(-100) for i in xrange(self.nelite)]
-        self.peliteid = [np.int(i) for i in xrange(self.nelite)]
-        self.pelitex = [deepcopy(self.chiparams) for i in xrange(self.nelite)]
-        self.plastx = [deepcopy(self.chiparams) for i in xrange(self.nparticles)]
-        self.pelite_better = [' ' for i in xrange(self.nelite)]
+        self.pelite = [np.float(-100) for i in range(self.nelite)]
+        self.peliteid = [np.int(i) for i in range(self.nelite)]
+        self.pelitex = [deepcopy(self.chiparams) for i in range(self.nelite)]
+        self.plastx = [deepcopy(self.chiparams) for i in range(self.nparticles)]
+        self.pelite_better = [' ' for i in range(self.nelite)]
         # Maintain the current fitness of the different phenotypes 
-        self.fitness = [np.float(-100) for i in xrange(self.nparticles)]
-        self.parents = [[-1,-1] for i in xrange(self.nparticles)]
+        self.fitness = [np.float(-100) for i in range(self.nparticles)]
+        self.parents = [[-1,-1] for i in range(self.nparticles)]
 
     def CreateParticleSwarmDatabase(self, sim_dir, gen):
         # Create a database of the parameters, write them out to start with
@@ -256,7 +256,7 @@ class ChiSim(object):
 
         # Space separated parameter values
         param_str = ""
-        for ichi in xrange(len(self.chiparams)):
+        for ichi in range(len(self.chiparams)):
             param_str += "{} ".format(self.chiparams[ichi])
         param_str += "hash"
         with open(os.path.join(sim_dir, "gen{}_database.txt".format(gen)), "w") as stream:
@@ -264,10 +264,10 @@ class ChiSim(object):
 
     # Update the fitness of myself for all the subsims
     def UpdateFitness(self, sim_dir, dotest=False):
-        print " -- Simulations Checking and Updating Fitness -- "
+        print(" -- Simulations Checking and Updating Fitness -- ")
         if dotest:
-            print " WARNING ERROR Using fake fitness function!!!!!"
-            for idx in xrange(self.nparticles):
+            print(" WARNING ERROR Using fake fitness function!!!!!")
+            for idx in range(self.nparticles):
                 x = self.chiparams[0].values[idx]
                 sx = self.chiparams[1].values[idx]
                 y = self.chiparams[2].values[idx]
@@ -279,11 +279,11 @@ class ChiSim(object):
             return
 
         # Look for the fitness file in the data directory for each particle
-        for idx in xrange(self.nparticles):
-            print "Sim {} looking for fitness.yaml".format(idx)
+        for idx in range(self.nparticles):
+            print("Sim {} looking for fitness.yaml".format(idx))
             # Rebuild the name of the sim
             sim_name = ''
-            for ichi in xrange(len(self.chiparams)):
+            for ichi in range(len(self.chiparams)):
                 p = self.chiparams[ichi]
                 sim_name += p.format(p[idx]) + "_"
 
@@ -293,7 +293,7 @@ class ChiSim(object):
 
             # Check to see if this path exists
             if not os.path.exists(sim_full_path):
-                print "Checking the database file for the correct hash, as something went wrong during the regeneration"
+                print("Checking the database file for the correct hash, as something went wrong during the regeneration")
                 # See if we can reconstruct the name of the simulation from the gen database file
                 # Exploit pandas for this purpose
                 db_data = pd.read_csv(os.path.join(sim_dir, "{}_database.txt".format(os.path.basename(sim_dir))), header=None, delim_whitespace=True)
@@ -335,10 +335,10 @@ class ChiSim(object):
 
     # Update the best position of the swarm variables
     def UpdateBest(self):
-        pcurr = [np.float(-100.0) for i in xrange(self.nparticles)]
-        self.pbest_better = [' ' for i in xrange(self.nparticles)]
+        pcurr = [np.float(-100.0) for i in range(self.nparticles)]
+        self.pbest_better = [' ' for i in range(self.nparticles)]
         self.gbest_better = ' '
-        for i in xrange(self.nparticles):
+        for i in range(self.nparticles):
             pcurr[i] = self.fitness[i]
             if pcurr[i] > self.pbest[i]:
                 self.pbest[i] = pcurr[i]
@@ -353,8 +353,8 @@ class ChiSim(object):
 
     # Update the current elites for the genetic algorithm
     def UpdateBestGenetics(self):
-        self.pelite_better = [' ' for i in xrange(self.nelite)]
-        for i in xrange(self.nparticles):
+        self.pelite_better = [' ' for i in range(self.nelite)]
+        for i in range(self.nparticles):
             # Test each fitness of the 'best' particles, and figure out which one is best
             lowest_fitness = np.argmin(self.pelite)
             self.plastx[i] = deepcopy(self.chiparams)
@@ -366,10 +366,10 @@ class ChiSim(object):
 
     # Update the positions and velocities of the particles in the sytem
     def UpdatePositions(self):
-        for idx in xrange(self.nparticles):
+        for idx in range(self.nparticles):
             c1 = 2 * random.random()
             c2 = 2 * random.random()
-            for ichi in xrange(len(self.chiparams)):
+            for ichi in range(len(self.chiparams)):
                 oldval = self.chiparams[ichi].values[idx]
                 upperb = self.chiparams[ichi].bounds[1]
                 lowerb = self.chiparams[ichi].bounds[0]
@@ -409,7 +409,7 @@ class ChiSim(object):
         self.mutation_rate = 0.1
         self.ntournament = 5
 
-        for ichild in xrange(self.nparticles/2):
+        for ichild in range(self.nparticles/2):
             cidx1 = 2*ichild
             cidx2 = 2*ichild + 1
 
@@ -434,7 +434,7 @@ class ChiSim(object):
 
             # Now that we have the two genetics in hand, let us use the crossover points and determine the new genome for the resulting children
             # Iterate along the genome of the chromosomes and pick when we either do a crossover, or a mutation
-            for ichi in xrange(len(self.chiparams)):
+            for ichi in range(len(self.chiparams)):
                 # Crossover using random chance of inheriting from parent 1 or 2
                 self.parents[cidx1] = [parent1_idx, parent2_idx]
                 self.parents[cidx2] = [parent1_idx, parent2_idx]
@@ -456,7 +456,7 @@ class ChiSim(object):
                     newval = random.uniform(self.chiparams[ichi].bounds[0], self.chiparams[ichi].bounds[1])
                     self.chiparams[ichi].values[cidx2] = self.chiparams[ichi].paramtype(newval)
 
-        for i in xrange(self.nparticles):
+        for i in range(self.nparticles):
             self.fitness[i] = float('nan')
 
 
@@ -468,20 +468,20 @@ class ChiSim(object):
         self.mutation_rate = 0.1
         # Load the current fitness/genetics into a roulette wheel selection@
         # Generate the two parents together, making sure that they are not the same parent (inbreeding is bad)
-        for ichild in xrange(self.nparticles/2):
+        for ichild in range(self.nparticles/2):
             cidx1 = 2*ichild
             cidx2 = 2*ichild+1
 
             # go through and move all the fitness to be above 0 (subtract off min)
             self.weight_sum1 = 0.0
-            for i in xrange(self.nparticles):
+            for i in range(self.nparticles):
                 self.weight_sum1 += self.fitness[i] - self.min_genetics
 
             # Roulette wheel selection of the available parameters
             value1 = random.uniform(0.0, 1.0) * self.weight_sum1
             parent1_idx = -1
             #cur_value1 = self.min_fitness
-            for i in xrange(self.nparticles):
+            for i in range(self.nparticles):
                 value1 -= (self.fitness[i] - self.min_genetics)
                 if value1 <= 0.0:
                     parent1_idx = i
@@ -491,7 +491,7 @@ class ChiSim(object):
 
             # Roulette wheel of the resulting set for the next parent!
             self.weight_sum2= 0.0
-            for i in xrange(self.nparticles):
+            for i in range(self.nparticles):
                 if i == parent1_idx:
                     continue
                 self.weight_sum2 += self.fitness[i] - self.min_genetics
@@ -499,7 +499,7 @@ class ChiSim(object):
             # Roulette wheel selection of the available parameters
             value2 = random.uniform(0.0, 1.0) * self.weight_sum2
             parent2_idx = -1
-            for i in xrange(self.nparticles):
+            for i in range(self.nparticles):
                 if i == parent1_idx:
                     continue
                 value2 -= (self.fitness[i] - self.min_genetics)
@@ -546,7 +546,7 @@ class ChiSim(object):
 
             # Now that we have the two genetics in hand, let us use the crossover points and determine the new genome for the resulting children
             # Iterate along the genome of the chromosomes and pick when we either do a crossover, or a mutation
-            for ichi in xrange(len(self.chiparams)):
+            for ichi in range(len(self.chiparams)):
                 # Crossover using random chance of inheriting from parent 1 or 2
                 # This crossover computation is a random choice of each parent...
                 self.parents[cidx1] = [parent1_idx, parent2_idx]
@@ -569,7 +569,7 @@ class ChiSim(object):
                     newval = random.uniform(self.chiparams[ichi].bounds[0], self.chiparams[ichi].bounds[1])
                     self.chiparams[ichi].values[cidx2] = self.chiparams[ichi].paramtype(newval)
 
-        for i in xrange(self.nparticles):
+        for i in range(self.nparticles):
             self.fitness[i] = float('nan')
 
     # Bias the swarm variables at random
@@ -580,38 +580,38 @@ class ChiSim(object):
             pid = np.int(row[0])
             # Loop over the chiparams and set them, note, this has to index by 1 further because of
             # the particle taking up a spot in the dataframe
-            for ichi in xrange(len(self.chiparams)):
+            for ichi in range(len(self.chiparams)):
                 self.chiparams[ichi].values[pid] = self.chiparams[ichi].paramtype(row[ichi+1])
 
     def PrintSwarmCurrent(self):
         str0 = "id  fitness "
-        for ichi in xrange(len(self.chiparams)):
+        for ichi in range(len(self.chiparams)):
             str0 += "{:>12s}{:>12s}".format(self.chiparams[ichi], "vel")
-        print str0
-        for idx in xrange(self.nparticles):
+        print(str0)
+        for idx in range(self.nparticles):
             str1 = "{0:<3d}  {1:>6.3f} ".format(idx, self.fitness[idx])
-            for ichi in xrange(len(self.chiparams)):
+            for ichi in range(len(self.chiparams)):
                 str1 += "{0:>12.3f}".format(self.chiparams[ichi].values[idx])
                 str1 += "{0:>12.3f}".format(self.velocity[idx][ichi])
-            print str1
+            print(str1)
 
     def PrintSwarmBest(self):
         str0 = "id  bestfit  "
-        for ichi in xrange(len(self.chiparams)):
+        for ichi in range(len(self.chiparams)):
             str0 += "{:>10s}    ".format(self.chiparams[ichi])
-        print str0
-        for idx in xrange(self.nparticles):
+        print(str0)
+        for idx in range(self.nparticles):
             str1 = "{0:<3d}  {1:>6.3f} ".format(idx, self.pbest[idx])
-            for ichi in xrange(len(self.chiparams)):
+            for ichi in range(len(self.chiparams)):
                 str1 += " {0:10.3f}   ".format(self.pbestx[idx][ichi].values[self.pbestid[idx]])
             str1 += " {} ".format(self.pbest_better[idx])
-            print str1
+            print(str1)
 
         str2 = "{0:<3s}  {1:>6.3f} ".format("g", self.gbest)
-        for ichi in xrange(len(self.chiparams)):
+        for ichi in range(len(self.chiparams)):
             str2 += " {0:10.3f}   ".format(self.gbestx[ichi].values[self.gbestid])
         str2 += " {} ".format(self.gbest_better)
-        print str2
+        print(str2)
 
         #str3 = "{} {} ".format("gfull", self.gbest)
         #for ichi in xrange(len(self.chiparams)):
@@ -621,25 +621,25 @@ class ChiSim(object):
     # Genetic algorithm print information
     def PrintCurrentGenetics(self):
         str0 = "id  fitness "
-        for idx in xrange(self.nparticles):
+        for idx in range(self.nparticles):
             str1 = "{0:<3d}  {1:>6.3f} ".format(idx, self.fitness[idx])
-            for ichi in xrange(len(self.chiparams)):
+            for ichi in range(len(self.chiparams)):
                 str1 += "{0:>12.3f}".format(self.chiparams[ichi].values[idx])
             str1 += " [{}, {}]".format(self.parents[idx][0], self.parents[idx][1])
-            print str1
+            print(str1)
 
 
     def PrintGeneticsBest(self):
         str0 = "id  bestfit  "
-        for ichi in xrange(len(self.chiparams)):
+        for ichi in range(len(self.chiparams)):
             str0 += "{:>10s}    ".format(self.chiparams[ichi])
-        print str0
-        for idx in xrange(self.nelite):
+        print(str0)
+        for idx in range(self.nelite):
             str1 = "{0:<3d}  {1:>6.3f} ".format(idx, self.pelite[idx])
-            for ichi in xrange(len(self.chiparams)):
+            for ichi in range(len(self.chiparams)):
                 str1 += " {0:10.3f}   ".format(self.pelitex[idx][ichi].values[self.peliteid[idx]])
             str1 += " {} ".format(self.pelite_better[idx])
-            print str1
+            print(str1)
 
 # Class to fill Sim directories with seed directories
 class ChiSeed(ChiParam):
@@ -666,7 +666,7 @@ class ChiSeed(ChiParam):
 
 ##########################################
 if __name__ == "__main__":
-    print "Not implemented. This is strictly a library."
+    print("Not implemented. This is strictly a library.")
 
 
 

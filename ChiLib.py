@@ -15,7 +15,7 @@ Description: Library of used functions for Chi-Launcher
 '''
 
 def CreateYamlFilesFromDict(seed_dir, yml_file_dict):
-    for f, d in yml_file_dict.iteritems():
+    for f, d in yml_file_dict.items():
         path = os.path.join(seed_dir, f)
         with open(path, 'w') as of:
             OrderedYamlDump(d, of, default_flow_style=False)
@@ -45,7 +45,7 @@ def OrderedYamlDump(data, stream=None, Dumper=yaml.Dumper, **kwds):
     def _dict_representer(dumper, data):
         return dumper.represent_mapping(
             yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
-            data.items())
+            list(data.items()))
     OrderedDumper.add_representer(OrderedDict, _dict_representer)
     return yaml.dump(data, stream, OrderedDumper, **kwds)
 
@@ -76,7 +76,7 @@ def find_str_values(obj, pattern='^ChiParam\(.*\)'):
                     yield result
 
     elif isinstance(obj, dict):
-        for k, v in obj.iteritems():
+        for k, v in obj.items():
             if re.match(pattern, str(v)):
                 yield ObjRef(obj, k)
             elif isinstance(v, (dict,list)):
@@ -120,7 +120,7 @@ def find_dirs(path):
 
 ##########################################
 if __name__ == "__main__":
-    print "Not implemented. This is strictly a library."
+    print("Not implemented. This is strictly a library.")
 
 
 

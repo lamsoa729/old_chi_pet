@@ -100,7 +100,7 @@ class ChiMain(object):
 
         if not self.opts.states and self.opts.args_file:
             yd = CreateDictFromYamlFile(self.opts.args_file)
-            self.opts.states = yd.keys()
+            self.opts.states = list(yd.keys())
 
     def ProgOpts(self):
         wd = self.opts.workdir # Shortcut for work directory
@@ -110,12 +110,12 @@ class ChiMain(object):
                 self.opts.launch = find_dirs(os.path.join(wd, "simulations"))
                 # If no dirs were found return with warning
                 if self.opts.launch == []:
-                    print " No sim directories were found our given. "
+                    print(" No sim directories were found our given. ")
                     return
             # Find run.not and delete
             try: os.remove(os.path.join(wd, "run.not"))
             except OSError: 
-                print "run.not was not found in workdir. Might want to go searching for it."
+                print("run.not was not found in workdir. Might want to go searching for it.")
                 pass
             # Create run.ing in workdir
             touch(os.path.join(wd, "run.ing"))
