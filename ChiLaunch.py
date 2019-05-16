@@ -6,7 +6,7 @@ import argparse
 import re
 import fnmatch
 
-from subprocess import Popen
+from subprocess import Popen, PIPE
 
 # Creates multithreaded processor jobs.
 
@@ -34,7 +34,9 @@ def create_multiprocessor_job(seedpaths, statelist, job_name="ChiRun", walltime=
     # Slurm submission code
     if qmgr == 'slurm':
         # Open a pipe to the sbatch command.
-        output, input = Popen('sbatch')
+        # output, input = Popen('sbatch')
+        p = Popen('sbatch', stdin=PIPE, stdout=PIPE)
+        output, input = (p.stdout, p.stdin)
         if walltime.count(':') == 3:
             walltime = walltime.replace(':', '-', 1)
         job_string = """#!/bin/bash
@@ -69,7 +71,8 @@ cd $SLURM_SUBMIT_DIR
         log = 'sim.log'
         errlog = 'sim.err'
         # Open a pipe to the qsub command.
-        output, input = Popen('qsub')
+        p = Popen('qsub', stdin=PIPE, stdout=PIPE)
+        output, input = (p.stdout, p.stdin)
         job_string = """#!/bin/bash
 #PBS -N {0}
 #PBS -l walltime={1}
@@ -98,7 +101,7 @@ cd $PBS_O_WORKDIR
         return
 
     # Send job_string to qsub
-    input.write(job_string)
+    input.write(job_string.encode('utf-8'))
     input.close()
 
     # Print your job and the response to the screen
