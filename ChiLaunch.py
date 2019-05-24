@@ -50,6 +50,7 @@ def create_multiprocessor_job(seedpaths, statelist, job_name="ChiRun", walltime=
 #SBATCH -A {7}
 #SBATCH --qos={8}
 #SBATCH --partition={9}
+export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
 
 cd $SLURM_SUBMIT_DIR
 
