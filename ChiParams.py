@@ -156,11 +156,16 @@ class ChiSim(object):
                     cparam.AddValue()
 
     def MakeSeeds(self):
-        sd_obj = next(find_str_values(self.yml_file_dict, 
-                        pattern='^ChiSeed\(.*\)'))
-        self.seeds = eval(sd_obj.GetValue())
-        self.seeds.SetObjRef(sd_obj)
-        self.seeds.CreateSeedList()
+        try:
+            sd_obj = next(find_str_values(self.yml_file_dict, 
+                            pattern='^ChiSeed\(.*\)'))
+            self.seed_flag = True
+        except:
+            self.seed_flag = False
+        if self.seed_flag:
+            self.seeds = eval(sd_obj.GetValue())
+            self.seeds.SetObjRef(sd_obj)
+            self.seeds.CreateSeedList()
 
     def MakeSimDirectory(self, run_dir, ind_lst=[]):
         sim_name = ""
@@ -173,7 +178,20 @@ class ChiSim(object):
         sim_dir = os.path.join(run_dir, sim_name[:-1])
         os.mkdir(sim_dir)
         print("   {}".format(sim_dir))
-        self.seeds.MakeSeedDirectories(sim_dir, self.yml_file_dict, self.opts)
+        if self.seed_flag:
+            self.seeds.MakeSeedDirectories(sim_dir, self.yml_file_dict, self.opts)
+        else:
+        # for sn, s in zip(self.sd_names, self.values):
+            # sd_dir = os.path.join(sim_dir, sn)
+            # os.mkdir(sd_dir)
+            # self.obj_r.Set(s)
+            CreateYamlFilesFromDict(sim_dir, self.yml_file_dict)
+            for f in self.opts.non_yaml:
+                cp(f, sim_dir)
+            if self.opts.states:
+                for s in self.opts.states:
+                    open(os.path.join(sim_dir, 'sim.{}'.format(s)), 'a')
+
 
     def MakeSimDirectoryDatabase(self, run_dir, gen, ind_lst=[]):
         # Update the parameter values the same as the last type of sim directory sturcture
@@ -202,7 +220,15 @@ class ChiSim(object):
         sim_dir = os.path.join(run_dir, hash_object.hexdigest())
         os.mkdir(sim_dir)
         print("   {} (from {})".format(sim_dir, sim_name))
-        self.seeds.MakeSeedDirectories(sim_dir, self.yml_file_dict, self.opts)
+        if self.seed_flag:
+            self.seeds.makeseeddirectories(sim_dir, self.yml_file_dict, self.opts)
+        else:
+            CreateYamlFilesFromDict(sim_dir, self.yml_file_dict)
+            for f in self.opts.non_yaml:
+                cp(f, sim_dir)
+            if self.opts.states:
+                for s in self.opts.states:
+                    open(os.path.join(sim_dir, 'sim.{}'.format(s)), 'a')
         
     def DumpPickle(self, sim_dir):
         pkl_filename = os.path.join(sim_dir, 'sim_data.pickle')

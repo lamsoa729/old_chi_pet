@@ -107,7 +107,8 @@ class ChiMain(object):
         if self.opts.launch != "NOLAUNCH":
             # If no sim dirs are given find them all in simulations
             if self.opts.launch == []: 
-                self.opts.launch = find_dirs(os.path.join(wd, "simulations"))
+                # self.opts.launch = find_dirs(os.path.join(wd, "simulations"))
+                self.opts.launch = find_dirs(wd)
                 # If no dirs were found return with warning
                 if self.opts.launch == []:
                     print(" No sim directories were found our given. ")

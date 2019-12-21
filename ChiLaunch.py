@@ -365,6 +365,7 @@ def ChiLaunch(simdirs, opts=''):
         endi = starti + int(ntasks)
         # If end index is greater the number of seeds make end the last seed
         # run
+        print(seeds)
         if endi > len(seeds):
             endi = len(seeds)
         if endi > starti:

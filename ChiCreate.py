@@ -73,9 +73,17 @@ class ChiCreate(object):
         sim_dir = os.path.join(self.opts.workdir, sim_dir_name)
 
         # Make run directory
-        if self.opts.replace and os.path.exists(sim_dir_name):
-            shutil.rmtree(sim_dir)
-        #os.mkdir(sim_dir)
+        if os.path.exists(sim_dir_name):
+            if self.opts.replace:
+                shutil.rmtree(sim_dir)
+            else:
+                option = input(" Folders exist, would you like to overwrite them?(y or [n]): ") or 'n'
+                if option == 'y':
+                    shutil.rmtree(sim_dir)
+                else:
+                    print("Could not create run structure. Exiting Chi.")
+                    exit(1)
+
         os.makedirs(sim_dir)
 
         # Get all the permutations of values when running a slice

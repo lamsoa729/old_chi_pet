@@ -112,7 +112,7 @@ class ChiRun(object):
             else:
                 af = default_args
 
-        # print OrderedYamlDump(af, default_flow_style=False)
+        print(OrderedYamlDump(af, default_flow_style=False))
         for k, l in af.items():
             print("File= {}, Dictionary= {}".format(k, " ".join(l)))
 
