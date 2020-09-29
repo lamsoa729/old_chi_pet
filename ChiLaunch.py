@@ -11,9 +11,10 @@ from subprocess import Popen, PIPE
 # Creates multithreaded processor jobs.
 
 
-def create_multiprocessor_job(seedpaths, statelist, job_name="ChiRun", walltime="1:00",
-                              nnodes="1", ntasks="1", nprocs="24", queue="shas", args_file="args.yaml",
-                              qos="condo", allocation="ucb-summit-smr", qmgr='slurm'):
+def create_multiprocessor_job(seedpaths, statelist, job_name="ChiRun",
+                              walltime="1:00", nnodes="1", ntasks="1",
+                              nprocs="20", queue="ccb", args_file="args.yaml",
+                              qos="ccb", qmgr='slurm'):
     print("creating jobs for:")
     for i, sd_path in enumerate(seedpaths):
         print(
@@ -47,7 +48,6 @@ def create_multiprocessor_job(seedpaths, statelist, job_name="ChiRun", walltime=
 #SBATCH --cpus-per-task {4}
 #SBATCH -o {5}
 #SBATCH -e {6}
-#SBATCH -A {7}
 #SBATCH --qos={8}
 #SBATCH --partition={9}
 export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
@@ -55,7 +55,7 @@ export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
 cd $SLURM_SUBMIT_DIR
 
 
-""".format(job_name, walltime, nnodes, ntasks, nprocs, log, errlog, allocation, qos, queue)
+""".format(job_name, walltime, nnodes, ntasks, nprocs, log, errlog, qos, queue)
         for i, sd_path in enumerate(seedpaths):
             sd_path = os.path.abspath(sd_path)
             command = "{0} -d {1} -a {2} -s {3}".format(
@@ -65,36 +65,6 @@ cd $SLURM_SUBMIT_DIR
             job_string = job_string + \
                 "srun -n1 --exclusive {0} 1> {1} 2> {2} &\n".format(
                     command, log, errlog)
-        job_string = job_string + "wait\n"
-
-# FIXME: Needs to be tested on pando before run
-    elif qmgr == 'torque':
-        log = 'sim.log'
-        errlog = 'sim.err'
-        # Open a pipe to the qsub command.
-        p = Popen('qsub', stdin=PIPE, stdout=PIPE)
-        output, input = (p.stdout, p.stdin)
-        job_string = """#!/bin/bash
-#PBS -N {0}
-#PBS -l walltime={1}
-#PBS -l nodes={2}:ppn={3}
-#PBS -o {4}
-#PBS -e {5}
-#PBS -q {6}
-#PBS -V
-cd $PBS_O_WORKDIR
-
-""".format(job_name, walltime, nnodes, nprocs, log, errlog, queue)
-        for i, sd_path in enumerate(seedpaths):
-            sd_path = os.path.abspath(sd_path)
-            command = "{0} -d {1} -a {2} -s {3}".format(
-                seedlaunchpath, sd_path, args_file, " ".join(statelist[i]))
-            log = os.path.join(sd_path, 'sim.log')
-            errlog = os.path.join(sd_path, 'sim.err')
-
-            job_string = job_string + command + \
-                " 1> {0} 2> {1}&\n".format(log, errlog)
-
         job_string = job_string + "wait\n"
 
     else:
@@ -310,30 +280,20 @@ def ChiLaunch(simdirs, opts=''):
 
     scheduler = input('Input scheduler (default slurm): ').strip()
     if scheduler == '' or scheduler == 'slurm':
-        scheduler, queue, nprocs = ("slurm", "shas", "1")
-    # FIXME doesn't work for torque at the moment but shouldn't require too
-    # much to fix up
-    elif scheduler == 'torque':
-        queue, nprocs = ("short2gb", "16")
+        scheduler, queue, nprocs = ("slurm", "ccb", "1")
     else:
         print("Chi-pet is not programmed for scheduler '{}'.".format(scheduler))
         sys.exit(1)
-
-    allocation = input('Input allocation (default ucb-summit-smr): ').strip()
-    if allocation == '':
-        allocation, qos = ("ucb-summit-smr", "condo")
-    else:
-        qos = "normal"
-
-    qos_switch = input(
-        'Input qos aka quality of service (default {}): '.format(qos)).strip()
-    if qos_switch != '':
-        qos = qos_switch
 
     queue_switch = input(
         'Input job queue (default {}): '.format(queue)).strip()
     if queue_switch != '':
         queue = queue_switch
+
+    qos_switch = input(
+        'Input qos aka quality of service (default {}): '.format(queue)).strip()
+    if qos_switch != '':
+        qos = qos_switch
 
     walltime = input(
         'Input walltime (dd:hh:mm:ss), (default 23:59:00): ').strip()
@@ -354,7 +314,7 @@ def ChiLaunch(simdirs, opts=''):
         nprocs = nprocs_switch
 
     if not query_yes_no("Generating job for states ({0}) with walltime ({1}) on queue ({2}) in allocation ({3}) and QOS ({4}) with scheduler ({5}).".format(
-            " ".join(runstates), walltime, queue, allocation, qos, scheduler)):
+            " ".join(runstates), walltime, queue, qos, scheduler)):
         return 1
 
     # processors = "nodes={0}:ppn={1}".format(nodes,ppn)
@@ -369,9 +329,10 @@ def ChiLaunch(simdirs, opts=''):
         if endi > len(seeds):
             endi = len(seeds)
         if endi > starti:
-            create_multiprocessor_job(seeds[starti:endi], states[starti:endi], walltime=walltime,
-                                      nnodes=nodes, ntasks=ntasks, nprocs=nprocs, queue=queue, qos=qos,
-                                      allocation=allocation, qmgr=scheduler)
+            create_multiprocessor_job(seeds[starti:endi], states[starti:endi],
+                                      walltime=walltime, nnodes=nodes,
+                                      ntasks=ntasks, nprocs=nprocs,
+                                      queue=queue, qos=qos, qmgr=scheduler)
         # Torque scheduler has a 10 second update time
         # make sure you wait before adding another
         import time
