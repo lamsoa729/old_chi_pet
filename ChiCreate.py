@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-## Basic
+# Basic
 import sys
 import os
 import pdb
@@ -7,7 +7,7 @@ import shutil
 import yaml
 import argparse
 import re
-## Analysis
+# Analysis
 from ChiParams import ChiParam, ChiSim
 from collections import OrderedDict
 from ChiLib import *
@@ -17,13 +17,15 @@ Name: ChiCreate.py
 Description: Creates simulation structure to run simulations with ChiLaunch
 '''
 
-##Class definition
+# Class definition
+
+
 class ChiCreate(object):
     def __init__(self, opts, cwd):
         # Owned parameters
         self.cwd = cwd
         self.opts = opts
-        self.yml_files_dict = OrderedDict() # combined dictionary of all yaml files
+        self.yml_files_dict = OrderedDict()  # combined dictionary of all yaml files
         self.ChiParams = []
         self.Sim = None
 
@@ -31,7 +33,7 @@ class ChiCreate(object):
         # Make master yaml dictionary
         self.MakeYmlDict(file_list)
 
-        # Get a list of all the ChiParam dictionsarys with key 
+        # Get a list of all the ChiParam dictionsarys with key
         # and value (ChiParam string) and put into a list
         a = list(find_str_values(self.yml_files_dict))
 
@@ -43,7 +45,7 @@ class ChiCreate(object):
         # Take input yaml files and create master dictionary from them
         for f_name in file_list:
             if os.path.isfile(f_name):
-                self.yml_files_dict[f_name]=CreateDictFromYamlFile(f_name)
+                self.yml_files_dict[f_name] = CreateDictFromYamlFile(f_name)
 
     def MakeChiParams(self, chilist):
         for x in chilist:
@@ -59,9 +61,9 @@ class ChiCreate(object):
             self.Sim.UpdateParamValues()
         elif self.opts.shotgun:
             self.Sim.UpdateShotgunParamValues()
-        elif self.opts.particleswarmcreate: # Duplicates the behavior of the shotgun approach
+        elif self.opts.particleswarmcreate:  # Duplicates the behavior of the shotgun approach
             self.Sim.UpdateShotgunParamValues()
-        elif self.opts.geneticalgorithmcreate: # Duplicates the behavior again
+        elif self.opts.geneticalgorithmcreate:  # Duplicates the behavior again
             self.Sim.UpdateShotgunParamValues()
 
         self.Sim.MakeSeeds()
@@ -77,7 +79,8 @@ class ChiCreate(object):
             if self.opts.replace:
                 shutil.rmtree(sim_dir)
             else:
-                option = input(" Folders exist, would you like to overwrite them?(y or [n]): ") or 'n'
+                option = input(
+                    " Folders exist, would you like to overwrite them?(y or [n]): ") or 'n'
                 if option == 'y':
                     shutil.rmtree(sim_dir)
                 else:
@@ -89,7 +92,7 @@ class ChiCreate(object):
         # Get all the permutations of values when running a slice
         if self.opts.create:
             # Get number of variations in each parameter set
-            lst = [ x.GetNValues() for x in self.ChiParams ] 
+            lst = [x.GetNValues() for x in self.ChiParams]
             # Make a list of all the combinations of parameter indices
             l = ind_recurse(lst)
 
@@ -97,9 +100,9 @@ class ChiCreate(object):
         elif self.opts.shotgun or self.opts.particleswarmcreate:
             l = []
             for i in range(self.opts.n):
-                l += [ [i]*len(self.ChiParams) ]
+                l += [[i] * len(self.ChiParams)]
 
-        # Loop through indices and make the new sim directories 
+        # Loop through indices and make the new sim directories
         # and place seed directories in them
         print(" -- Making simulations -- ")
         for il in l:
@@ -116,11 +119,8 @@ class ChiCreate(object):
             print("values: {}".format(chiparam.values))
             print("bounds: {}".format(chiparam.bounds))
 
+
 ##########################################
 if __name__ == "__main__":
     opts = parse_args()
     x = ChiCreate(opts)
-
-
-
-

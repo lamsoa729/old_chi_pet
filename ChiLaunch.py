@@ -12,9 +12,10 @@ from subprocess import Popen, PIPE
 
 
 def create_multiprocessor_job(seedpaths, statelist, job_name="ChiRun",
-                              walltime="1:00", nnodes="1", ntasks="1",
-                              nprocs="20", queue="ccb", args_file="args.yaml",
-                              qos="ccb", qmgr='slurm'):
+                              walltime="1:00", nnodes="1", ntasks="20",
+                              nprocs="1", constraint="skylake", queue="ccb",
+                              args_file="args.yaml", qmgr='slurm',
+                              name="job.slurm"):
     print("creating jobs for:")
     for i, sd_path in enumerate(seedpaths):
         print(
@@ -36,8 +37,9 @@ def create_multiprocessor_job(seedpaths, statelist, job_name="ChiRun",
     if qmgr == 'slurm':
         # Open a pipe to the sbatch command.
         # output, input = Popen('sbatch')
-        p = Popen('sbatch', stdin=PIPE, stdout=PIPE)
-        output, input = (p.stdout, p.stdin)
+        # p = Popen('sbatch', stdin=PIPE, stdout=PIPE)
+        # output, input = (p.stdout, p.stdin)
+
         if walltime.count(':') == 3:
             walltime = walltime.replace(':', '-', 1)
         job_string = """#!/bin/bash
@@ -48,14 +50,15 @@ def create_multiprocessor_job(seedpaths, statelist, job_name="ChiRun",
 #SBATCH --cpus-per-task {4}
 #SBATCH -o {5}
 #SBATCH -e {6}
-#SBATCH --qos={8}
-#SBATCH --partition={9}
-export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
+#SBATCH --constraint={7}
+#SBATCH --partition={8}
 
 cd $SLURM_SUBMIT_DIR
 
 
-""".format(job_name, walltime, nnodes, ntasks, nprocs, log, errlog, qos, queue)
+""".format(job_name, walltime, nnodes, ntasks, nprocs, log, errlog, constraint, queue)
+# Add back in if you want to specify tasks
+# export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
         for i, sd_path in enumerate(seedpaths):
             sd_path = os.path.abspath(sd_path)
             command = "{0} -d {1} -a {2} -s {3}".format(
@@ -63,21 +66,23 @@ cd $SLURM_SUBMIT_DIR
             log = os.path.join(sd_path, 'sim.log')
             errlog = os.path.join(sd_path, 'sim.err')
             job_string = job_string + \
-                "srun -n1 --exclusive {0} 1> {1} 2> {2} &\n".format(
+                "srun -n1 {0} 1> {1} 2> {2} &\n".format(
                     command, log, errlog)
         job_string = job_string + "wait\n"
 
     else:
         print("Invalid qmgr: {0}".format(qmgr))
         return
+    with open(name, 'w') as input:
+        # input.write(job_string.encode('utf-8'))
+        input.write(job_string)
 
     # Send job_string to qsub
-    input.write(job_string.encode('utf-8'))
-    input.close()
+    # input.close()
 
     # Print your job and the response to the screen
-    print(job_string)
-    print(output.read())
+    # print(job_string)
+    # print(output.read())
 
 # Create parallel job submissions to be run on the same node(Depricated)
 # def create_parallel_job(seedpaths, statelist, job_name="ChiRun", walltime="1:00",
@@ -149,7 +154,8 @@ cd $SLURM_SUBMIT_DIR
 #             log = os.path.join(sd_path, 'sim.log')
 #             errlog = os.path.join(sd_path, 'sim.err')
 
-#             job_string = job_string + command + " 1> {0} 2> {1}&\n".format(log, errlog);
+# job_string = job_string + command + " 1> {0} 2> {1}&\n".format(log,
+# errlog);
 
 #         job_string = job_string + "wait\n"
 
@@ -285,15 +291,14 @@ def ChiLaunch(simdirs, opts=''):
         print("Chi-pet is not programmed for scheduler '{}'.".format(scheduler))
         sys.exit(1)
 
+    constraint = input('Input node type (default skylake)')
+    if constraint == '':
+        constraint = 'skylake'
+
     queue_switch = input(
         'Input job queue (default {}): '.format(queue)).strip()
     if queue_switch != '':
         queue = queue_switch
-
-    qos_switch = input(
-        'Input qos aka quality of service (default {}): '.format(queue)).strip()
-    if qos_switch != '':
-        qos = qos_switch
 
     walltime = input(
         'Input walltime (dd:hh:mm:ss), (default 23:59:00): ').strip()
@@ -304,17 +309,17 @@ def ChiLaunch(simdirs, opts=''):
     if nodes == '':
         nodes = "1"
 
-    ntasks = input('Input number of tasks per node (default 24): ').strip()
+    ntasks = input('Input number of tasks per node (default 20): ').strip()
     if ntasks == '':
-        ntasks = "24"
+        ntasks = "20"
 
     nprocs_switch = input(
         'Input number of processors per task (default {}): '.format(nprocs)).strip()
     if nprocs_switch != '':
         nprocs = nprocs_switch
 
-    if not query_yes_no("Generating job for states ({0}) with walltime ({1}) on queue ({2}) in allocation ({3}) and QOS ({4}) with scheduler ({5}).".format(
-            " ".join(runstates), walltime, queue, qos, scheduler)):
+    if not query_yes_no("Generating job for states ({0}) with walltime ({1}) on ({2}) nodes in queue ({3}) with scheduler ({4}).".format(
+            " ".join(runstates), walltime, constraint, queue, scheduler)):
         return 1
 
     # processors = "nodes={0}:ppn={1}".format(nodes,ppn)
@@ -332,7 +337,10 @@ def ChiLaunch(simdirs, opts=''):
             create_multiprocessor_job(seeds[starti:endi], states[starti:endi],
                                       walltime=walltime, nnodes=nodes,
                                       ntasks=ntasks, nprocs=nprocs,
-                                      queue=queue, qos=qos, qmgr=scheduler)
+                                      constraint=constraint, queue=queue,
+                                      args_file=args_file,
+                                      qmgr=scheduler,
+                                      name="job{}-{}.slurm".format(starti, endi))
         # Torque scheduler has a 10 second update time
         # make sure you wait before adding another
         import time
