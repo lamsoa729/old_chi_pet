@@ -9,47 +9,35 @@ import fnmatch
 from pathlib import Path
 from subprocess import Popen, PIPE
 
-# Creates multithreaded processor jobs.
-#!/bin/bash
-# SBATCH --job-name={0}
-# SBATCH -t {1}
-# SBATCH -N {2}
-# SBATCH --ntasks-per-node {3}
-# SBATCH --cpus-per-task {4}
-# SBATCH -o {5}
-# SBATCH -e {6}
-# SBATCH --constraint={7}
-# SBATCH --partition={8}
 
-# cd $SLURM_SUBMIT_DIR
-
-
-def create_multiprocessor_job(seedpaths, statelist, job_name="ChiRun",
-                              walltime="1:00", nnodes="1", ntasks="20",
-                              nprocs="1", constraint="skylake", queue="ccb",
-                              args_file="args.yaml", name="job.slurm",
-                              env_sh='SetEnv.sh'):
+def create_disbatch_job(seedpaths, statelist,
+                        job_name="ChiRun",
+                        walltime="1:00",
+                        ntasks="40",
+                        tasks_per_node="40",
+                        cpus_per_task="1",
+                        constraint="skylake",
+                        partition="ccb",
+                        task_name="tasks.txt",
+                        args_file="args.yaml",
+                        env_sh='~/SetCGlassEnv.sh',
+                        **kwargs):
     print("creating jobs for:")
     for i, sd_path in enumerate(seedpaths):
         print("sim: {0} with states: {1}".format(
             sd_path, ", ".join(statelist[i])))
     print("")
 
-    # Customize your options here
-    job_name = 'ChiRunBatch'
-    seedlaunchpath = Path(__file__).resolve().parent / 'ChiRun.py'
-    # seedlaunchpath = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-    # 'ChiRun.py')
-    log = '/dev/null'
-    errlog = '/dev/null'
     if walltime.count(':') == 3:
         walltime = walltime.replace(':', '-', 1)
 
-    # Slurm submission code
-    # Open a pipe to the sbatch command.
-    # output, input = Popen('sbatch')
-    # p = Popen('sbatch', stdin=PIPE, stdout=PIPE)
-    # output, input = (p.stdout, p.stdin)
+        # Slurm submission code
+        # Open a pipe to the sbatch command.
+        # output, input = Popen('sbatch')
+        # p = Popen('sbatch', stdin=PIPE, stdout=PIPE)
+        # output, input = (p.stdout, p.stdin)
+
+    seedlaunchpath = Path(__file__).resolve().parent / 'ChiRun.py'
 
     job_string = """# DisBatch task file made with chi-Pet
 #DISBATCH PREFIX  cd {0} ; source {1} ; \n
@@ -65,11 +53,44 @@ def create_multiprocessor_job(seedpaths, statelist, job_name="ChiRun",
         # errlog = os.path.join(sd_path, 'sim.err')
         errlog = sd_path / 'sim.err'
         job_string += "{0} 1> {1} 2> {2} \n".format(command, log, errlog)
+    with open(task_name, 'w') as task_file:
+        # input.write(job_string.encode('utf-8'))
+        task_file.write(job_string)
     # job_string = job_string + "wait\n"
 
-    with open(name, 'w') as input:
-        # input.write(job_string.encode('utf-8'))
-        input.write(job_string)
+    # disbatch_path = Path.cwd()
+    # if disbatch_path.exists():
+    #     for path in disbatch_path.iterdir():
+    #         if path.is_file():
+    #             path.unlink()
+    # else:
+    #     disbatch_path.mkdir()
+
+    with open('submit.slurm', 'w') as submit_file:
+        sub_str = """#!/bin/bash
+module load disBatch
+#SBATCH --job-name {0}
+#SBATCH --time {1}
+#SBATCH --ntasks {2}
+#SBATCH --ntasks-per-node {3}
+#SBATCH -o {5}
+#SBATCH -e {6}
+#SBATCH --constraint {7}
+#SBATCH --partition {8}
+
+disBatch -c {4} {9}
+        """.format(job_name,
+                   walltime,
+                   ntasks,
+                   tasks_per_node,
+                   cpus_per_task,
+                   '/dev/null',
+                   '/dev/null',
+                   constraint,
+                   partition,
+                   # disbatch_path,
+                   task_name)
+        submit_file.write(sub_str)
 
     # Send job_string to qsub
     # input.close()
@@ -131,6 +152,18 @@ def query_yes_no(question, default="yes"):
         else:
             sys.stdout.write("Please respond with 'yes' or 'no' "
                              "(or 'y' or 'n').\n")
+    return
+
+
+def string_query(msg, kword, dft_dict):
+    """TODO: Docstring for string_query.
+    @return: TODO
+
+    """
+    ans = input('{0} (default {1}): '.format(msg, dft_dict[kword])).strip()
+    if ans != '':
+        dft_dict[kword] = ans
+    return
 
 
 def ChiLaunch(simdirs, opts=''):
@@ -164,7 +197,7 @@ def ChiLaunch(simdirs, opts=''):
     runstates = input(
         "List space separated states you wish to run (leave blank for all): ").split(' ')
     if runstates[0] == '':
-        runstates = 'all'
+        runstates = ['all']
 
     seeds = []  # Seed directories to be run
     states = []  # States of seed directories
@@ -175,84 +208,61 @@ def ChiLaunch(simdirs, opts=''):
         if not is_running(sdd) and not is_error(sdd):
             state = get_state(sdd)
             # print state
-            if runstates != 'all':
+            if runstates != ['all']:
                 state = list(set(state).intersection(set(runstates)))
             if state:
                 seeds.append(sdd)
                 states.append(state)
     print("Jobs found: {0}".format(len(seeds)))
 
-    n_jobs = input(
-        'Input number of jobs to run, (default {0}): '.format(
-            len(seeds))).strip()
-    if n_jobs == '':
-        n_jobs = len(seeds)
-    else:
-        n_jobs = int(n_jobs)
+    # defaults
+    dft_dict = {"job_name": "ChiRun",
+                "walltime": "23:59:00",
+                "ntasks": "40",
+                "tasks_per_node": "40",
+                "cpus_per_task": "1",
+                "constraint": "skylake",
+                "partition": "genx",
+                "task_name": "tasks.txt",
+                "args_file": "args.yaml",
+                "env_sh": '~/SetCGlassEnv.sh'
+                }
 
-    scheduler = input('Input scheduler (default slurm): ').strip()
-    if scheduler == '' or scheduler == 'slurm':
-        scheduler, queue, nprocs = ("slurm", "ccb", "1")
-    else:
-        print("Chi-pet is not programmed for scheduler '{}'.".format(scheduler))
-        sys.exit(1)
+    string_query('Input node type', 'constraint', dft_dict)
+    string_query('Input partition', 'partition', dft_dict)
+    string_query('Input the number of tasks', 'ntasks', dft_dict)
+    string_query('Input how many tasks per node', 'tasks_per_node', dft_dict)
+    string_query('Input how many cpus per task', 'cpus_per_task', dft_dict)
+    string_query('Input walltime (dd:hh:mm:ss)', 'walltime', dft_dict)
 
-    constraint = input('Input node type (default skylake)')
-    if constraint == '':
-        constraint = 'skylake'
-
-    queue_switch = input(
-        'Input job queue (default {}): '.format(queue)).strip()
-    if queue_switch != '':
-        queue = queue_switch
-
-    walltime = input(
-        'Input walltime (dd:hh:mm:ss), (default 23:59:00): ').strip()
-    if walltime == '':
-        walltime = "23:59:00"
-
-    nodes = input('Input number of nodes (default 1): ').strip()
-    if nodes == '':
-        nodes = "1"
-
-    ntasks = input('Input number of tasks per node (default 20): ').strip()
-    if ntasks == '':
-        ntasks = "20"
-
-    nprocs_switch = input(
-        'Input number of processors per task (default {}): '.format(nprocs)).strip()
-    if nprocs_switch != '':
-        nprocs = nprocs_switch
-
-    if not query_yes_no("Generating job for states ({0}) with walltime ({1}) on ({2}) nodes in queue ({3}) with scheduler ({4}).".format(
-            " ".join(runstates), walltime, constraint, queue, scheduler)):
+    check_info_string = ("Generating disBatch job for ({}) tasks "
+                         "using a total of ({}) cpus "
+                         "with states ({}) "
+                         "run for ({}) "
+                         "in partition ({}) "
+                         "on ({}) nodes").format(dft_dict['ntasks'],
+                                                 (int(dft_dict['ntasks']) *
+                                                  int(dft_dict['cpus_per_task'])),
+                                                 " ".join(runstates),
+                                                 dft_dict['walltime'],
+                                                 dft_dict['partition'],
+                                                 dft_dict['constraint'])
+    if not query_yes_no(check_info_string):
         return 1
 
     # processors = "nodes={0}:ppn={1}".format(nodes,ppn)
     # TODO disBatch makes this unecessary I think?
-    for i_block in range(0, int(n_jobs / int(ntasks)) + 1):
+    # for i_block in range(0, int(n_jobs / int(ntasks)) + 1):
         # Find the index range of the seeds that you are running
-        starti = i_block * int(ntasks)
-        endi = starti + int(ntasks)
+        # starti = i_block * int(ntasks)
+        # endi = starti + int(ntasks)
         # If end index is greater the number of seeds make end the last seed
         # run
-        print(seeds)
-        if endi > len(seeds):
-            endi = len(seeds)
-        if endi > starti:
-            create_multiprocessor_job(seeds[starti:endi], states[starti:endi],
-                                      walltime=walltime, nnodes=nodes,
-                                      ntasks=ntasks, nprocs=nprocs,
-                                      constraint=constraint, queue=queue,
-                                      args_file=args_file,
-                                      name="job{}-{}.slurm".format(starti, endi))
-        # Torque scheduler has a 10 second update time
-        # make sure you wait before adding another
-        import time
-        if scheduler == "torque":
-            time.sleep(10)
-        else:
-            time.sleep(.1)
+        # print(seeds)
+        # if endi > len(seeds):
+        # endi = len(seeds)
+        # if endi > starti:
+    create_disbatch_job(seeds, states, **dft_dict)
 
 
 if __name__ == '__main__':
