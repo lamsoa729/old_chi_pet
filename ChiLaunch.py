@@ -69,16 +69,15 @@ def create_disbatch_job(seedpaths, statelist,
     with open('submit.slurm', 'w') as submit_file:
         sub_str = """#!/bin/bash
 module load disBatch
-#SBATCH --job-name {0}
-#SBATCH --time {1}
-#SBATCH --ntasks {2}
-#SBATCH --ntasks-per-node {3}
-#SBATCH -o {5}
-#SBATCH -e {6}
-#SBATCH --constraint {7}
-#SBATCH --partition {8}
 
-disBatch -c {4} {9}
+sbatch --job-name {0} \\
+        --time {1} \\
+        --ntasks {2} \\
+        --ntasks-per-node {3} \\
+        -o {5} -e {6} \\
+        --constraint {7} \\
+        --partition {8} \\
+        disBatch -c {4} {9}
         """.format(job_name,
                    walltime,
                    ntasks,
