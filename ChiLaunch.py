@@ -229,23 +229,28 @@ def ChiLaunch(simdirs, opts=''):
 
     string_query('Input node type', 'constraint', dft_dict)
     string_query('Input partition', 'partition', dft_dict)
-    string_query('Input the number of tasks', 'ntasks', dft_dict)
+    string_query('Input the number of tasks at a time', 'ntasks', dft_dict)
     string_query('Input how many tasks per node', 'tasks_per_node', dft_dict)
     string_query('Input how many cpus per task', 'cpus_per_task', dft_dict)
     string_query('Input walltime (dd:hh:mm:ss)', 'walltime', dft_dict)
+    string_query('Input environment script name', 'env_sh', dft_dict)
 
-    check_info_string = ("Generating disBatch job for ({}) tasks "
-                         "using a total of ({}) cpus "
+    check_info_string = ("Generating disBatch job for ({}) concurrent tasks "
+                         "using a total of ({}) cpus per tasks "
                          "with states ({}) "
                          "run for ({}) "
                          "in partition ({}) "
-                         "on ({}) nodes").format(dft_dict['ntasks'],
-                                                 (int(dft_dict['ntasks']) *
-                                                  int(dft_dict['cpus_per_task'])),
-                                                 " ".join(runstates),
-                                                 dft_dict['walltime'],
-                                                 dft_dict['partition'],
-                                                 dft_dict['constraint'])
+                         "on ({}) nodes "
+                         "with environment from ({})."
+                         ).format(dft_dict['ntasks'],
+                                  (int(dft_dict['ntasks']) *
+                                   int(dft_dict['cpus_per_task'])),
+                                  " ".join(runstates),
+                                  dft_dict['walltime'],
+                                  dft_dict['partition'],
+                                  dft_dict['constraint'],
+                                  dft_dict['env_sh'],
+                                  )
     if not query_yes_no(check_info_string):
         return 1
 
