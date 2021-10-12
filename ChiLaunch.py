@@ -16,7 +16,7 @@ def create_disbatch_job(seedpaths, statelist,
                         ntasks="40",
                         tasks_per_node="40",
                         cpus_per_task="1",
-                        constraint="skylake",
+                        constraint="rome",
                         partition="ccb",
                         task_name="tasks.txt",
                         args_file="args.yaml",
@@ -31,12 +31,6 @@ def create_disbatch_job(seedpaths, statelist,
     if walltime.count(':') == 3:
         walltime = walltime.replace(':', '-', 1)
 
-        # Slurm submission code
-        # Open a pipe to the sbatch command.
-        # output, input = Popen('sbatch')
-        # p = Popen('sbatch', stdin=PIPE, stdout=PIPE)
-        # output, input = (p.stdout, p.stdin)
-
     seedlaunchpath = Path(__file__).resolve().parent / 'ChiRun.py'
 
     job_string = """# DisBatch task file made with chi-Pet
@@ -44,27 +38,14 @@ def create_disbatch_job(seedpaths, statelist,
 """.format(Path.cwd(), env_sh)
 
     for i, sd_path in enumerate(seedpaths):
-        # sd_path = os.path.abspath(sd_path)
         sd_path = Path(sd_path).resolve()
         command = "{0} -d {1} -a {2} -s {3}".format(
             seedlaunchpath, sd_path, args_file, " ".join(statelist[i]))
-        # log = os.path.join(sd_path, 'sim.log')
         log = sd_path / 'sim.log'
-        # errlog = os.path.join(sd_path, 'sim.err')
         errlog = sd_path / 'sim.err'
         job_string += "{0} 1> {1} 2> {2} \n".format(command, log, errlog)
     with open(task_name, 'w') as task_file:
-        # input.write(job_string.encode('utf-8'))
         task_file.write(job_string)
-    # job_string = job_string + "wait\n"
-
-    # disbatch_path = Path.cwd()
-    # if disbatch_path.exists():
-    #     for path in disbatch_path.iterdir():
-    #         if path.is_file():
-    #             path.unlink()
-    # else:
-    #     disbatch_path.mkdir()
 
     with open('submit.slurm', 'w') as submit_file:
         sub_str = """#!/bin/bash
@@ -87,16 +68,8 @@ sbatch --job-name {0} \\
                    '/dev/null',
                    constraint,
                    partition,
-                   # disbatch_path,
                    task_name)
         submit_file.write(sub_str)
-
-    # Send job_string to qsub
-    # input.close()
-
-    # Print your job and the response to the screen
-    # print(job_string)
-    # print(output.read())
 
 
 def get_state(path):
@@ -206,7 +179,6 @@ def ChiLaunch(simdirs, opts=''):
     for sdd in seeddirs:
         if not is_running(sdd) and not is_error(sdd):
             state = get_state(sdd)
-            # print state
             if runstates != ['all']:
                 state = list(set(state).intersection(set(runstates)))
             if state:
@@ -216,17 +188,18 @@ def ChiLaunch(simdirs, opts=''):
 
     # defaults
     dft_dict = {"job_name": "ChiRun",
-                "walltime": "23:59:00",
-                "ntasks": "40",
-                "tasks_per_node": "40",
+                "walltime": "48:00:00",
+                "ntasks": "128",
+                "tasks_per_node": "128",
                 "cpus_per_task": "1",
-                "constraint": "skylake",
-                "partition": "genx",
+                "constraint": "rome",
+                "partition": "ccb",
                 "task_name": "tasks.txt",
                 "args_file": "args.yaml",
                 "env_sh": '~/SetCGlassEnv.sh'
                 }
 
+    string_query('Input job name', 'job_name', dft_dict)
     string_query('Input node type', 'constraint', dft_dict)
     string_query('Input partition', 'partition', dft_dict)
     string_query('Input the number of tasks at a time', 'ntasks', dft_dict)
@@ -235,14 +208,15 @@ def ChiLaunch(simdirs, opts=''):
     string_query('Input walltime (dd:hh:mm:ss)', 'walltime', dft_dict)
     string_query('Input environment script name', 'env_sh', dft_dict)
 
-    check_info_string = ("Generating disBatch job for ({}) concurrent tasks "
+    check_info_string = ("Generating ({}) disBatch job for ({}) concurrent tasks "
                          "using a total of ({}) cpus per tasks "
                          "with states ({}) "
                          "run for ({}) "
                          "in partition ({}) "
                          "on ({}) nodes "
                          "with environment from ({})."
-                         ).format(dft_dict['ntasks'],
+                         ).format(dft_dict['job_name'],
+                                  dft_dict['ntasks'],
                                   (int(dft_dict['ntasks']) *
                                    int(dft_dict['cpus_per_task'])),
                                   " ".join(runstates),
@@ -254,18 +228,6 @@ def ChiLaunch(simdirs, opts=''):
     if not query_yes_no(check_info_string):
         return 1
 
-    # processors = "nodes={0}:ppn={1}".format(nodes,ppn)
-    # TODO disBatch makes this unecessary I think?
-    # for i_block in range(0, int(n_jobs / int(ntasks)) + 1):
-        # Find the index range of the seeds that you are running
-        # starti = i_block * int(ntasks)
-        # endi = starti + int(ntasks)
-        # If end index is greater the number of seeds make end the last seed
-        # run
-        # print(seeds)
-        # if endi > len(seeds):
-        # endi = len(seeds)
-        # if endi > starti:
     create_disbatch_job(seeds, states, **dft_dict)
 
 
