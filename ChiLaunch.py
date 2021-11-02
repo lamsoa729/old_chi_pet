@@ -7,7 +7,7 @@ import re
 import fnmatch
 
 from pathlib import Path
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, run
 
 
 def create_disbatch_job(seedpaths, statelist,
@@ -70,6 +70,87 @@ sbatch --job-name {0} \\
                    partition,
                    task_name)
         submit_file.write(sub_str)
+
+# Create the slurm submissions directly and execute them
+def create_longleaf_job(seedpaths, statelist,
+                        job_name="ChiRun",
+                        partition="general",
+                        gres="gres:1",
+                        qos="gpu_access",
+                        ntasks="1",
+                        cpus_per_task="1",
+                        mem="8G",
+                        walltime="1:00",
+                        args_file="args.yaml",
+                        **kwargs):
+                        
+    print("creating jobs for:")
+    for i, sd_path in enumerate(seedpaths):
+        print("sim: {0} with states: {1}".format(
+            sd_path, ", ".join(statelist[i])))
+    print("")
+    
+    if walltime.count(':') == 3:
+        walltime = walltime.replace(':', '-', 1)
+
+    # Write everythign to shell script, then execute the shell script
+    for i, sd_path in enumerate(seedpaths):
+        sd_path = Path(sd_path).resolve()
+        run_script = sd_path / 'run_hoomd.sh'
+        args_file = sd_path / args_file
+        outlog = sd_path / 'sim.log'
+
+        # Peek inside the args file to see what we are running
+        with open(args_file, 'r') as stream: yaml_dict = yaml.safe_load(stream)
+        python_file = yaml_dict['start'][1]
+        default_file = yaml_dict['start'][3]
+
+        # Create the job script directly
+        with open(run_script, 'w') as fname:
+            job_string = """#!/bin/bash
+
+#SBATCH --job-name={0}
+#SBATCH --partition={1}
+#SBATCH --gres={2}
+#SBATCH --qos={3}
+#SBATCH --ntasks={4}
+#SBATCH --cpus-per-task={5}
+#SBATCH --mem={6}
+#SBATCH --time={7}
+#SBATCH --output={8}
+
+unset OMP_NUM_THREADS
+module load git
+module load cmake
+module load python/3.8.8
+module load cuda/11.2
+module load gcc/9.1.0
+
+source /nas/longleaf/home/edelmaie/virtual_envs/hoomd300beta9/bin/activate
+
+echo $PWD
+cd {9}
+echo $PWD
+
+python3 {10} --default_file {11} \n
+            """.format(job_name,
+                       partition,
+                       gres,
+                       qos,
+                       ntasks,
+                       cpus_per_task,
+                       mem,
+                       walltime,
+                       outlog,
+                       sd_path,
+                       python_file,
+                       default_file)
+            fname.write(job_string)
+
+        # Execute the script
+        run(["sbatch", run_script])
+
+
 
 
 def get_state(path):
@@ -187,7 +268,8 @@ def ChiLaunch(simdirs, opts=''):
     print("Jobs found: {0}".format(len(seeds)))
 
     # defaults
-    dft_dict = {"job_name": "ChiRun",
+    dft_dict = {"supercomputer_name": "disBatch",
+                "job_name": "ChiRun",
                 "walltime": "48:00:00",
                 "ntasks": "128",
                 "tasks_per_node": "128",
@@ -199,37 +281,82 @@ def ChiLaunch(simdirs, opts=''):
                 "env_sh": '~/SetCGlassEnv.sh'
                 }
 
-    string_query('Input job name', 'job_name', dft_dict)
-    string_query('Input node type', 'constraint', dft_dict)
-    string_query('Input partition', 'partition', dft_dict)
-    string_query('Input the number of tasks at a time', 'ntasks', dft_dict)
-    string_query('Input how many tasks per node', 'tasks_per_node', dft_dict)
-    string_query('Input how many cpus per task', 'cpus_per_task', dft_dict)
-    string_query('Input walltime (dd:hh:mm:ss)', 'walltime', dft_dict)
-    string_query('Input environment script name', 'env_sh', dft_dict)
+    string_query('Input supercomputer name', 'supercomputer_name', dft_dict)
 
-    check_info_string = ("Generating ({}) disBatch job for ({}) concurrent tasks "
-                         "using a total of ({}) cpus per tasks "
-                         "with states ({}) "
-                         "run for ({}) "
-                         "in partition ({}) "
-                         "on ({}) nodes "
-                         "with environment from ({})."
-                         ).format(dft_dict['job_name'],
-                                  dft_dict['ntasks'],
-                                  (int(dft_dict['ntasks']) *
-                                   int(dft_dict['cpus_per_task'])),
-                                  " ".join(runstates),
-                                  dft_dict['walltime'],
-                                  dft_dict['partition'],
-                                  dft_dict['constraint'],
-                                  dft_dict['env_sh'],
-                                  )
-    if not query_yes_no(check_info_string):
-        return 1
+    if dft_dict['supercomputer_name'] == 'disBatch':
+        string_query('Input job name', 'job_name', dft_dict)
+        string_query('Input node type', 'constraint', dft_dict)
+        string_query('Input partition', 'partition', dft_dict)
+        string_query('Input the number of tasks at a time', 'ntasks', dft_dict)
+        string_query('Input how many tasks per node', 'tasks_per_node', dft_dict)
+        string_query('Input how many cpus per task', 'cpus_per_task', dft_dict)
+        string_query('Input walltime (dd:hh:mm:ss)', 'walltime', dft_dict)
+        string_query('Input environment script name', 'env_sh', dft_dict)
+        check_info_string = ("Generating ({}) disBatch job for ({}) concurrent tasks "
+                             "using a total of ({}) cpus per tasks "
+                             "with states ({}) "
+                             "run for ({}) "
+                             "in partition ({}) "
+                             "on ({}) nodes "
+                             "with environment from ({})."
+                             ).format(dft_dict['job_name'],
+                                      dft_dict['ntasks'],
+                                      (int(dft_dict['ntasks']) *
+                                       int(dft_dict['cpus_per_task'])),
+                                      " ".join(runstates),
+                                      dft_dict['walltime'],
+                                      dft_dict['partition'],
+                                      dft_dict['constraint'],
+                                      dft_dict['env_sh'],
+                                      )
+        if not query_yes_no(check_info_string):
+            return 1
 
-    create_disbatch_job(seeds, states, **dft_dict)
+        create_disbatch_job(seeds, states, **dft_dict)
 
+    elif dft_dict['supercomputer_name'] == 'longleaf':
+        # Change some of the default behaviors
+        dft_dict['job_name'] = "hoomd_membrane"
+        dft_dict['partition'] = "volta-gpu"
+        dft_dict['gres'] = "gpu:1"
+        dft_dict['qos'] = "gpu_access"
+        dft_dict['ntasks'] = "1"
+        dft_dict['cpus_per_task'] = "8"
+        dft_dict['mem'] = "8G"
+        dft_dict['walltime'] = "08:00:00"
+
+        string_query('Input job name', 'job_name', dft_dict)
+        string_query('Input partition', 'partition', dft_dict)
+        string_query('Input gres (number of gpus)', 'gres', dft_dict)
+        string_query('Input the number of tasks at a time', 'ntasks', dft_dict)
+        string_query('Input how many cpus per task', 'cpus_per_task', dft_dict)
+        string_query('Input how much memory', 'mem', dft_dict)
+        string_query('Input walltime (dd:hh:mm:ss)', 'walltime', dft_dict)
+
+        check_info_string = ("Generating ({}) longleaf job for ({}) concurrent tasks "
+                             "using graphics ({}) "
+                             "and qos ({}) "
+                             "using a total of ({}) cpus per tasks "
+                             "with ({}) memory "
+                             "with states ({}) "
+                             "run for ({}) "
+                             "in partition ({})."
+                             ).format(dft_dict['job_name'],
+                                      dft_dict['ntasks'],
+                                      dft_dict['gres'],
+                                      dft_dict['qos'],
+                                      (int(dft_dict['ntasks']) *
+                                       int(dft_dict['cpus_per_task'])),
+                                      " ".join(runstates),
+                                      dft_dict['mem'],
+                                      dft_dict['walltime'],
+                                      dft_dict['partition'],
+                                      )
+
+        if not query_yes_no(check_info_string):
+            return 1
+
+        create_longleaf_job(seeds, states, **dft_dict)
 
 if __name__ == '__main__':
     if len(sys.argv) > 1:
