@@ -104,6 +104,7 @@ def create_longleaf_job(seedpaths, statelist,
         with open(args_file, 'r') as stream: yaml_dict = yaml.safe_load(stream)
         python_file = yaml_dict['start'][1]
         default_file = yaml_dict['start'][3]
+        analysis_file = yaml_dict['analysis'][1]
 
         # Create the job script directly
         with open(run_script, 'w') as fname:
@@ -122,17 +123,25 @@ def create_longleaf_job(seedpaths, statelist,
 unset OMP_NUM_THREADS
 module load git
 module load cmake
-module load python/3.8.8
-module load cuda/11.2
+module load python/3.9.6
 module load gcc/9.1.0
+module load cuda/11.4
 
-source /nas/longleaf/home/edelmaie/virtual_envs/hoomd300beta9/bin/activate
+source /nas/longleaf/home/edelmaie/virtual_envs/hoomd300beta13/bin/activate
 
 echo $PWD
 cd {9}
 echo $PWD
 
-python3 {10} --default_file {11} \n
+start=`date +%s`
+
+python3 {10} --yaml {11} \n
+
+end=`date +%s`
+runtime=$((end-start))
+echo $runtime
+
+python3 {12} -sd --yaml {11} -A -F \n
             """.format(job_name,
                        partition,
                        gres,
@@ -144,7 +153,8 @@ python3 {10} --default_file {11} \n
                        outlog,
                        sd_path,
                        python_file,
-                       default_file)
+                       default_file,
+                       analysis_file)
             fname.write(job_string)
 
         # Execute the script
