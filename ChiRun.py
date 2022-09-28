@@ -17,45 +17,47 @@ Output: Runs seed (singular) simulations
 
 # Dictionary of commands used for spindle_bd_mp.
 # This is the default commands when using ChiRun.
-default_args = OrderedDict([ ('run', [ 'spindle_bd_mp',
-                          'spindle_bd_mp.default',
-                          'spindle_bd_mp.equil',
-                          'spindle_bd_mp.yaml',
-                          'crosslink_params.yaml' ]),
-                  ('analyze', [ 'spindle_analsysis',
-                              'spindle_bd_mp.default',
-                              'spindle_bd_mp.equil',
-                              'spindle_bd_mp.initial_config',
-                              'spindle_bd_mp.posit'])
-               ])
+default_args = OrderedDict([('run', ['spindle_bd_mp',
+                                     'spindle_bd_mp.default',
+                                     'spindle_bd_mp.equil',
+                                     'spindle_bd_mp.yaml',
+                                     'crosslink_params.yaml']),
+                            ('analyze', ['spindle_analsysis',
+                                         'spindle_bd_mp.default',
+                                         'spindle_bd_mp.equil',
+                                         'spindle_bd_mp.initial_config',
+                                         'spindle_bd_mp.posit'])
+                            ])
 # TODO Future args.yaml file so order is preserved.
 # default_args = { [{'run': [ 'spindle_bd_mp',
-                          # 'spindle_bd_mp.default',
-                          # 'spindle_bd_mp.equil',
-                          # 'spindle_bd_mp.yaml',
-                          # 'crosslink_params.yaml'}],
-                  # {'analyze': [ 'spindle_analsysis',
-                              # 'spindle_bd_mp.default',
-                              # 'spindle_bd_mp.equil',
-                              # 'spindle_bd_mp.initial_config',
-                              # 'spindle_bd_mp.posit']}
-                 # ] }
+# 'spindle_bd_mp.default',
+# 'spindle_bd_mp.equil',
+# 'spindle_bd_mp.yaml',
+# 'crosslink_params.yaml'}],
+# {'analyze': [ 'spindle_analsysis',
+# 'spindle_bd_mp.default',
+# 'spindle_bd_mp.equil',
+# 'spindle_bd_mp.initial_config',
+# 'spindle_bd_mp.posit']}
+# ] }
+
 
 def run_parse_args():
     parser = argparse.ArgumentParser(prog='Chi.py')
     parser.add_argument('-d', '--workdir', type=str, required=True,
-            help='Name of the working directory where simulation will be run')
+                        help='Name of the working directory where simulation will be run')
     parser.add_argument('-a', '--args_file', type=str,
-            help='Name file that holds the program argument list.')
+                        help='Name file that holds the program argument list.')
     # parser.add_argument('-p', '--program', type=str, required=True,
-            # help='Name of program that will be run')
+    # help='Name of program that will be run')
     parser.add_argument('-s', '--states', nargs='+', type=str, required=True,
-            help='Name of all the states the simulation will run eg. start, build, analyze, etc.')
+                        help='Name of all the states the simulation will run eg. start, build, analyze, etc.')
 
     opts = parser.parse_args()
     return opts
 
-def run_start(workdir, args): #, prefix="spindle_bd_mp"):
+
+def run_start(workdir, args):  # , prefix="spindle_bd_mp"):
     print("starting sim in {0}".format(workdir))
     sys.stdout.flush()
     if os.path.exists(workdir):
@@ -68,6 +70,7 @@ def run_start(workdir, args): #, prefix="spindle_bd_mp"):
         return status
     else:
         return 1
+
 
 def run_analyze(workdir, args):
     print("starting sim in {0}".format(workdir))
@@ -82,18 +85,20 @@ def run_analyze(workdir, args):
     else:
         return 1
 
+
 def run_args(workdir, state, args):
-    action = state+'-ing'
+    action = state + '-ing'
     print("Started {} sim in {}".format(action, args))
     sys.stdout.flush()
     if os.path.exists(workdir):
         os.chdir(workdir)
-        open('.'+action, 'a').close()
+        open('.' + action, 'a').close()
         status = call(args)
-        os.remove('.'+action)
+        os.remove('.' + action)
         return status
     else:
         return 1
+
 
 class ChiRun(object):
     def __init__(self, opts):
@@ -102,13 +107,16 @@ class ChiRun(object):
     def Run(self, opts):
         args_dict = {}
         if not os.path.exists(opts.workdir):
-            print("Run failed. Directory {} does not exists".format(opts.workdir))
+            print(
+                "Run failed. Directory {} does not exists".format(
+                    opts.workdir))
 
         else:
-            if (opts.args_file and 
+            if (opts.args_file and
                     os.path.exists(os.path.join(opts.workdir, opts.args_file))):
-                    af = CreateDictFromYamlFile(os.path.join(opts.workdir, opts.args_file))
-                # with open(os.path.join(opts.workdir, opts.args_file), 'r') as f:
+                af = CreateDictFromYamlFile(
+                    os.path.join(opts.workdir, opts.args_file))
+            # with open(os.path.join(opts.workdir, opts.args_file), 'r') as f:
             else:
                 af = default_args
 
@@ -124,26 +132,9 @@ class ChiRun(object):
                     os.remove('sim.{}'.format(k))
 
 
-
-
-
-        # if 'start' in opts.states:
-            # if run_start(opts.workdir, af['start']):
-                # print "run failed"
-                # open('.error', 'a').close()
-            # else:
-                # os.remove('sim.start')
-        # if 'analyze' in opts.states:
-            # if run_analyze(opts.workdir, af['analyze']):
-                # print "run failed"
-                # open('.error', 'a').close()
-            # else:
-                # os.remove('sim.analyze')
-
 if __name__ == '__main__':
 
     opts = run_parse_args()
 
     c = ChiRun(opts)
     c.Run(opts)
-
