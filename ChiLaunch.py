@@ -141,7 +141,7 @@ end=`date +%s`
 runtime=$((end-start))
 echo $runtime
 
-python3 {12} -sd --yaml {11} -A -F \n
+python3 {12} -sd --yaml {11} -A -F -G\n
             """.format(job_name,
                        partition,
                        gres,
@@ -160,6 +160,87 @@ python3 {12} -sd --yaml {11} -A -F \n
         # Execute the script
         run(["sbatch", run_script])
 
+# Create a longleaf job for LAMMPS (sets up later runs)
+def create_lammps_snp_job(seedpaths, statelist,
+                          job_name="ChiRun",
+                          partition="general",
+                          ntasks="1",
+                          cpus_per_task="1",
+                          mem="8G",
+                          walltime="1:00",
+                          args_file="args.yaml",
+                          **kwargs):
+    print(f"creating jobs for:")
+    for i, sd_path in enumerate(seedpaths):
+        print("sim: {0} with states: {1}".format(
+            sd_path, ", ".join(statelist[i])))
+    print("")
+
+    if walltime.count(':') == 3:
+        walltime = walltime.replace(":", "-", 1)
+
+    # Write everything to a shell script, then execute the shell script
+    for i, sd_path in enumerate(seedpaths):
+        sd_path = Path(sd_path).resolve()
+        run_script = sd_path / 'run_lammps.sh'
+        args_file = sd_path / args_file
+        outlog = sd_path / 'sim_lammps_setup.log'
+
+        # Peek inside the args file to see what we are running
+        with open(args_file, 'r') as stream: yaml_dict = yaml.safe_load(stream)
+        python_file = yaml_dict['start'][1]
+        default_file = yaml_dict['start'][3]
+        analysis_file = yaml_dict['analysis'][1]
+
+        # Create the uob script directly
+        with open(run_script, 'w') as fname:
+            job_string = """#!/bin/bash
+
+#SBATCH --job-name={0}
+#SBATCH --partition={1}
+#SBATCH --ntasks={2}
+#SBATCH --cpus-per-task={3}
+#SBATCH --mem={4}
+#SBATCH --time={5}
+#SBATCH --output={6}
+
+unset OMP_NUM_THREADS
+module load git
+module load cmake
+module load python/3.9.6
+module load gcc/9.1.0
+module load cuda/11.4
+
+source /nas/longleaf/home/edelmaie/virtual_envs/hoomd340/bin/activate
+
+echo $PWD
+cd {7}
+echo $PWD
+
+start=`date +%s`
+
+python3 {8} --yaml {9} \n
+
+end=`date +%s`
+runtime=$((end-start))
+echo $runtime
+
+sbatch run_equilibrate.sh
+
+            """.format(job_name,
+                       partition,
+                       ntasks,
+                       cpus_per_task,
+                       mem,
+                       walltime,
+                       outlog,
+                       sd_path,
+                       python_file,
+                       default_file)
+            fname.write(job_string)
+
+        # Execute the script
+        run(["sbatch", run_script])
 
 
 
@@ -367,6 +448,42 @@ def ChiLaunch(simdirs, opts=''):
             return 1
 
         create_longleaf_job(seeds, states, **dft_dict)
+
+    elif dft_dict['supercomputer_name'] == 'snp':
+        # Set up an SNP job on longleaf
+        # This is done through the normal general queue to set everything up
+        dft_dict['job_name'] = "lammps_snp"
+        dft_dict['partition'] = "general"
+        dft_dict['ntasks'] = "1"
+        dft_dict['cpus_per_task'] = "8"
+        dft_dict['mem'] = "8G"
+        dft_dict['walltime'] = "01:00:00"
+
+        string_query('Input job name', 'job_name', dft_dict)
+        string_query('Input partition', 'partition', dft_dict)
+        string_query('Input the number of tasks at a time', 'ntasks', dft_dict)
+        string_query('Input how many cpus per task', 'cpus_per_task', dft_dict)
+        string_query('Input how much memory', 'mem', dft_dict)
+        string_query('Input walltime (dd:hh:mm:ss)', 'walltime', dft_dict)
+
+        check_info_string = ("Generating ({}) longleaf LAMMPS job for ({}) concurrent tasks "
+                             "using a total of ({}) cpus per tasks "
+                             "with ({}) memory "
+                             "with states ({}) "
+                             "run for ({}) "
+                             "in partition ({})."
+                             ).format(dft_dict['job_name'],
+                                      dft_dict['ntasks'],
+                                      dft_dict['cpus_per_task'],
+                                      dft_dict['mem'],
+                                      " ".join(runstates),
+                                      dft_dict['walltime'],
+                                      dft_dict['partition'],
+                                      )
+        if not query_yes_no(check_info_string):
+            return 1
+
+        create_lammps_snp_job(seeds, states, **dft_dict)
 
 if __name__ == '__main__':
     if len(sys.argv) > 1:
