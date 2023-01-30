@@ -281,9 +281,9 @@ def create_lammps_dogwood_job(seedpaths, statelist,
 #SBATCH --job-name={0}
 #SBATCH --partition={1}
 #SBATCH --nodes=1
-#SBATCH --mem={4}
-#SBATCH --time={5}
-#SBATCH --output={6}
+#SBATCH --mem={2}
+#SBATCH --time={3}
+#SBATCH --output={4}
 
 unset OMP_NUM_THREADS
 module load git
@@ -295,12 +295,12 @@ module load cuda/11.4
 source /nas/longleaf/home/edelmaie/virtual_envs/hoomd340/bin/activate
 
 echo $PWD
-cd {7}
+cd {5}
 echo $PWD
 
 start=`date +%s`
 
-python3 {8} --yaml {9} \n
+python3 {6} --yaml {7} \n
 
 end=`date +%s`
 runtime=$((end-start))
