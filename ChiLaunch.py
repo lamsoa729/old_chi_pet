@@ -79,7 +79,7 @@ def create_longleaf_job(seedpaths, statelist,
                         qos="gpu_access",
                         ntasks="1",
                         cpus_per_task="1",
-                        mem="8G",
+                        mem="60G",
                         walltime="1:00",
                         args_file="args.yaml",
                         **kwargs):
@@ -124,10 +124,10 @@ unset OMP_NUM_THREADS
 module load git
 module load cmake
 module load python/3.9.6
-module load gcc/9.1.0
-module load cuda/11.4
+module load gcc/11.2.0
+module load cuda/11.8
 
-source /nas/longleaf/home/edelmaie/virtual_envs/hoomd300beta13/bin/activate
+source /nas/longleaf/home/edelmaie/virtual_envs/hoomd381/bin/activate
 
 echo $PWD
 cd {9}
@@ -141,7 +141,7 @@ end=`date +%s`
 runtime=$((end-start))
 echo $runtime
 
-python3 {12} -sd --yaml {11} -A -F -G\n
+#python3 {12} -sd --yaml {11} -A -F -G\n
             """.format(job_name,
                        partition,
                        gres,
@@ -490,7 +490,7 @@ def ChiLaunch(simdirs, opts=''):
         dft_dict['qos'] = "gpu_access"
         dft_dict['ntasks'] = "1"
         dft_dict['cpus_per_task'] = "8"
-        dft_dict['mem'] = "8G"
+        dft_dict['mem'] = "60G"
         dft_dict['walltime'] = "08:00:00"
 
         string_query('Input job name', 'job_name', dft_dict)
