@@ -5,6 +5,7 @@ import yaml
 import argparse
 import re
 import fnmatch
+import stat
 
 from pathlib import Path
 from subprocess import Popen, PIPE, run
@@ -96,20 +97,43 @@ def create_longleaf_job(seedpaths, statelist,
     # Write everythign to shell script, then execute the shell script
     for i, sd_path in enumerate(seedpaths):
         sd_path = Path(sd_path).resolve()
-        run_script = sd_path / 'run_hoomd.sh'
         args_file = sd_path / args_file
-        outlog = sd_path / 'sim.log'
 
         # Peek inside the args file to see what we are running
         with open(args_file, 'r') as stream: yaml_dict = yaml.safe_load(stream)
-        python_file = yaml_dict['start'][1]
-        default_file = yaml_dict['start'][3]
-        analysis_file = yaml_dict['analysis'][1]
 
-        # Create the job script directly
-        with open(run_script, 'w') as fname:
-            job_string = """#!/bin/bash
+        # Check to see what combination of states we are running, as that changes what script we write out
+        actual_runscript = None
+        for istate in statelist[i]:
+            #print(statelist)
+            #print(istate)
 
+            # Have a similar form for what we are running!
+            python_file = yaml_dict[istate][1]
+            default_file = yaml_dict[istate][3]
+            script_name = 'run_hoomd_' + istate + '.sh'
+            outlog_name = 'sim.' + istate + '.log'
+            running_name = 'sim.' + istate + '.running'
+            finished_name = 'sim.' + istate + '.finished'
+            run_script = sd_path / script_name
+            outlog = sd_path / outlog_name
+
+            if ('prep' in statelist[i]) and (istate == 'prep'):
+                actual_runscript = run_script
+                #print(f"Setting runscript (prep)  to: {actual_runscript}")
+            elif ('start' in statelist[i]) and (istate == 'start') and not ('prep' in statelist[i]):
+                actual_runscript = run_script
+                #print(f"Setting runscript (start) to: {actual_runscript}")
+
+            #print(f"  python_file: {python_file}")
+            #print(f"  default_file: {python_file}")
+            #print(f"  run_script: {run_script}")
+            #print(f"  outlog: {outlog}")
+
+            # Create the job script directly
+            with open(run_script, 'w') as fname:
+                job_string = """#!/bin/bash
+    
 #SBATCH --job-name={0}
 #SBATCH --partition={1}
 #SBATCH --gres={2}
@@ -133,32 +157,41 @@ echo $PWD
 cd {9}
 echo $PWD
 
+touch {10}
+
 start=`date +%s`
 
-python3 {10} --yaml {11} \n
+python3 {11} --yaml {12} \n
+
+touch {13}
 
 end=`date +%s`
 runtime=$((end-start))
-echo $runtime
-
-#python3 {12} -sd --yaml {11} -A -F -G\n
-            """.format(job_name,
-                       partition,
-                       gres,
-                       qos,
-                       ntasks,
-                       cpus_per_task,
-                       mem,
-                       walltime,
-                       outlog,
-                       sd_path,
-                       python_file,
-                       default_file,
-                       analysis_file)
-            fname.write(job_string)
+echo $runtime \n""".format(job_name,
+                           partition,
+                           gres,
+                           qos,
+                           ntasks,
+                           cpus_per_task,
+                           mem,
+                           walltime,
+                           outlog,
+                           sd_path,
+                           running_name,
+                           python_file,
+                           default_file,
+                           finished_name)
+                # This is just a guard to get the formatting right
+                if istate == 'prep' and ('start' in statelist[i]):
+                    job_string += """\nsbatch run_hoomd_start.sh\n"""
+                fname.write(job_string)
+            # Update the permissions to be nice
+            st = os.stat(run_script)
+            os.chmod(run_script, st.st_mode | stat.S_IEXEC)
 
         # Execute the script
-        run(["sbatch", run_script])
+        print(f"Executing {actual_runscript}")
+        run(["sbatch", actual_runscript])
 
 # Create a longleaf job for LAMMPS (sets up later runs)
 def create_lammps_snp_job(seedpaths, statelist,
